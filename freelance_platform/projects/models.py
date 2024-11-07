@@ -33,11 +33,17 @@ class Project(models.Model):
 
 
 class Application(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'На рассмотрении'),
+        ('accepted', 'Принята'),
+        ('rejected', 'Отклонена'),
+    ]
+
     freelancer = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'freelancer'})
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     price_offer = models.DecimalField(max_digits=10, decimal_places=2)
     experience_description = models.TextField()
-    is_accepted = models.BooleanField(default=False)  # Поле для отметки принятия заявки
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  # Новое поле статуса
 
     def __str__(self):
         return f'{self.freelancer.username} - {self.project.title}'

@@ -16,30 +16,27 @@
             Описание опыта: {{ application.experience_description|truncatewords:10 }}<br>  <!-- Ограничиваем описание до 10 слов -->
             Предложенная цена: {{ application.price_offer }} руб.<br>
 
-            <!-- Ссылка на детали заявки -->
-            <a href="{% url 'application_detail' application.id %}">Подробнее о заявке</a><br>
+            <!-- Статус заявки -->
+            <p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
 
-            {% if not application.is_accepted %}
-                <!-- Кнопка выбора исполнителя -->
+            {% if application.status == 'pending' %}
+                <!-- Кнопки для принятия или отклонения заявки -->
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="application_id" value="{{ application.id }}">
-                    <button type="submit">Выбрать исполнителем</button>
+                    <button type="submit" name="action" value="accept">Принять</button>
+                    <button type="submit" name="action" value="reject">Отклонить</button>
                 </form>
-            {% else %}
+            {% elif application.status == 'accepted' %}
                 <strong>Исполнитель выбран</strong>
+            {% elif application.status == 'rejected' %}
+                <strong>Заявка отклонена</strong>
             {% endif %}
         </li>
     {% endfor %}
 </ul>
 
-<!-- Добавляем кнопку для отмены проекта -->
-<form method="post" action="{% url 'cancel_project' project.id %}">
-    {% csrf_token %}
-    <button type="submit">Отменить проект</button>
-</form>
-
-<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет</a>
+<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет работодателя</a>
 
 </body>
 </html>

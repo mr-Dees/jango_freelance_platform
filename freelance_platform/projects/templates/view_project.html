@@ -18,13 +18,19 @@
         <li>
             Фрилансер: {{ application.freelancer.username }}<br>
             Описание опыта: {{ application.experience_description }}<br>
-            Предложение: {{ application.price_offer }} руб.<br>
+            Предложенная цена: {{ application.price_offer }} руб.<br>
             <a href="{% url 'application_detail' application.id %}">Подробнее о заявке</a>
         </li>
     {% empty %}
         <p>На данный момент нет заявок на этот проект.</p>
     {% endfor %}
 </ul>
+
+<!-- Добавляем кнопку для отмены проекта -->
+<form method="post" action="{% url 'cancel_project' project.id %}">
+    {% csrf_token %}
+    <button type="submit">Отменить проект</button>
+</form>
 
 <a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет работодателя</a>
 

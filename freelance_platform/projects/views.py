@@ -98,9 +98,13 @@ def freelancer_dashboard(request):
     # Проекты, на которые фрилансер уже подал заявку
     applied_projects = Project.objects.filter(application__freelancer=request.user)
 
+    # Получаем все заявки фрилансера для отображения их статусов
+    applications = Application.objects.filter(freelancer=request.user)
+
     return render(request, 'freelancer_dashboard.html', {
         'available_projects': available_projects,
-        'applied_projects': applied_projects
+        'applied_projects': applied_projects,
+        'applications': applications,
     })
 
 
@@ -150,16 +154,19 @@ def view_applications(request, project_id):
     # Получаем все заявки на этот проект
     applications = Application.objects.filter(project=project)
 
-    # Обработка выбора исполнителя
     if request.method == 'POST':
         application_id = request.POST.get('application_id')
+        action = request.POST.get('action')  # Определяем действие: принять или отклонить
         application = get_object_or_404(Application, id=application_id)
-        application.is_accepted = True
-        application.save()
 
-        # Обновляем статус проекта после выбора исполнителя
-        project.status = 'in_progress'
-        project.save()
+        if action == 'accept':
+            application.status = 'accepted'
+            project.status = 'in_progress'  # Обновляем статус проекта на "В работе"
+            project.save()
+        elif action == 'reject':
+            application.status = 'rejected'
+
+        application.save()
 
     return render(request, 'view_applications.html', {'project': project, 'applications': applications})
 
@@ -206,6 +213,7 @@ def application_detail(request, application_id):
 
 @login_required
 def cancel_project(request, project_id):
+    # Получаем проект по ID и проверяем, что он принадлежит текущему пользователю (работодателю)
     project = get_object_or_404(Project, id=project_id, employer=request.user)
 
     if request.method == 'POST':
