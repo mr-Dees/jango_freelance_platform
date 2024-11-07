@@ -13,17 +13,25 @@
 <p><strong>Описание опыта:</strong> {{ application.experience_description }}</p>
 <p><strong>Предложенная цена:</strong> {{ application.price_offer }} руб.</p>
 
-{% if not application.is_accepted %}
-    <form method="post" action="{% url 'view_applications' application.project.id %}">
+<!-- Статус заявки -->
+<p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
+
+{% if application.status == 'pending' %}
+    <!-- Кнопки для принятия или отклонения заявки -->
+    <form method="post">
         {% csrf_token %}
         <input type="hidden" name="application_id" value="{{ application.id }}">
-        <button type="submit">Выбрать исполнителем</button>
+        <button type="submit" name="action" value="accept">Принять</button>
+        <button type="submit" name="action" value="reject">Отклонить</button>
     </form>
-{% else %}
+{% elif application.status == 'accepted' %}
     <p><strong>Исполнитель выбран.</strong></p>
+{% elif application.status == 'rejected' %}
+    <p><strong>Заявка отклонена.</strong></p>
 {% endif %}
 
-<a href="{% url 'view_applications' application.project.id %}">Вернуться к списку заявок</a>
+<!-- Ссылка для возврата к проекту -->
+<a href="{% url 'project_detail' project.id %}">Вернуться к проекту</a>
 
 </body>
 </html>

@@ -207,8 +207,23 @@ def cancel_application(request, project_id):
 def application_detail(request, application_id):
     # Получаем заявку по ID и проверяем, что проект принадлежит текущему работодателю
     application = get_object_or_404(Application, id=application_id, project__employer=request.user)
+    project = application.project  # Получаем проект для возврата
 
-    return render(request, 'application_detail.html', {'application': application})
+    if request.method == 'POST':
+        action = request.POST.get('action')  # Определяем действие: принять или отклонить
+
+        if action == 'accept':
+            application.status = 'accepted'
+            # Обновляем статус проекта на "В работе", если заявка принята
+            project.status = 'in_progress'
+            project.save()
+        elif action == 'reject':
+            application.status = 'rejected'
+
+        # Сохраняем изменения в заявке
+        application.save()
+
+    return render(request, 'application_detail.html', {'application': application, 'project': project})
 
 
 @login_required
