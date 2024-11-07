@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import home, freelancer_dashboard, employer_dashboard, register, redirect_after_login, apply_for_project, \
-    upload_report, view_applications, cancel_application, application_detail, cancel_project, project_detail
+    upload_report, view_applications, cancel_application, application_detail, cancel_project, project_detail, \
+    retry_application, delete_application
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -21,4 +22,7 @@ urlpatterns = [
     path('employer/project/<int:project_id>/cancel/', cancel_project, name='cancel_project'),
     # Просмотр деталей проекта (для работодателей)
     path('employer/project/<int:project_id>/', project_detail, name='project_detail'),
+    # Повторная подача и удаление заявок (для фрилансеров)
+    path('retry_application/<int:application_id>/', retry_application, name='retry_application'),
+    path('delete_application/<int:application_id>/', delete_application, name='delete_application'),
 ]

@@ -27,6 +27,17 @@
             {% for application in applications %}
                 {% if application.project.id == project.id %}
                     Статус вашей заявки: {{ application.get_status_display }}
+
+                    {% if application.status == 'rejected' %}
+                        <!-- Кнопки для повторной подачи или удаления заявки -->
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="openModal({{ application.id }})">Повторить заявку</button>
+                            <form method="post" action="{% url 'delete_application' application.id %}">
+                                {% csrf_token %}
+                                <button type="submit">Удалить заявку</button>
+                            </form>
+                        </div>
+                    {% endif %}
                 {% endif %}
             {% endfor %}
         </li>
@@ -34,6 +45,37 @@
         <p>Вы еще не подали заявки ни на один проект.</p>
     {% endfor %}
 </ul>
+
+<!-- Модальное окно для ввода новых условий -->
+<div id="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+    <h3>Повторная заявка</h3>
+    <form method="post" id="retryForm">
+        {% csrf_token %}
+        <input type="hidden" name="application_id" id="applicationId">
+        <label for="price_offer">Предложенная цена:</label><br>
+        <input type="number" name="price_offer" step="0.01"><br><br>
+        <label for="experience_description">Описание опыта:</label><br>
+        <textarea name="experience_description"></textarea><br><br>
+        <button type="submit">Отправить</button>
+        <button type="button" onclick="closeModal()">Отмена</button>
+    </form>
+</div>
+
+<script>
+// Открытие модального окна и установка правильного URL
+function openModal(applicationId) {
+    document.getElementById('modal').style.display = 'block';
+    document.getElementById('applicationId').value = applicationId;
+
+    // Обновляем URL формы для повторной подачи заявки
+    document.getElementById('retryForm').action = "{% url 'retry_application' application_id=0 %}".replace('0', applicationId);
+}
+
+// Закрытие модального окна
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+}
+</script>
 
 </body>
 </html>

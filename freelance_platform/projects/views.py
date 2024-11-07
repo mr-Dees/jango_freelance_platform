@@ -249,3 +249,41 @@ def project_detail(request, project_id):
     applications = Application.objects.filter(project=project)
 
     return render(request, 'view_project.html', {'project': project, 'applications': applications})
+
+
+@login_required
+def delete_application(request, application_id):
+    # Получаем заявку по ID и проверяем, что она принадлежит текущему фрилансеру
+    application = get_object_or_404(Application, id=application_id, freelancer=request.user)
+    project = application.project
+
+    if request.method == 'POST':
+        # Удаляем заявку
+        application.delete()
+
+        # Проверяем статус проекта: если проект еще открыт (актуален), возвращаем его в доступные проекты
+        if project.status == 'open':
+            return redirect('freelancer_dashboard')  # Фрилансер увидит проект снова в доступных проектах
+
+    return redirect('freelancer_dashboard')
+
+
+@login_required
+def retry_application(request, application_id):
+    # Получаем заявку по ID и проверяем, что она принадлежит текущему фрилансеру
+    application = get_object_or_404(Application, id=application_id, freelancer=request.user)
+    project = application.project
+
+    if request.method == 'POST':
+        # Повторная подача заявки возможна только если проект открыт
+        if project.status == 'open':
+            # Обновляем условия заявки
+            new_price_offer = request.POST.get('price_offer')
+            new_experience_description = request.POST.get('experience_description')
+
+            application.price_offer = new_price_offer
+            application.experience_description = new_experience_description
+            application.status = 'pending'  # Сбрасываем статус на "На рассмотрении"
+            application.save()
+
+    return redirect('freelancer_dashboard')
