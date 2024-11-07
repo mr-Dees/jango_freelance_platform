@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import User
 from .models import Project
 from .models import Application
+from .models import Review
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -25,3 +26,9 @@ class ApplicationForm(forms.ModelForm):
     class Meta:
         model = Application
         fields = ['price_offer', 'experience_description']
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']

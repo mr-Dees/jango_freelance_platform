@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отменить заявку</title>
+</head>
+<body>
+    <h1>Вы уверены, что хотите отменить свою заявку на проект "{{ project.title }}"?</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Да, отменить заявку</button>
+        <a href="{% url 'freelancer_dashboard' %}">Нет, вернуться назад</a>
+    </form>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявки на проект</title>
+</head>
+<body>
+
+<h1>Заявки на проект: {{ project.title }}</h1>
+
+<ul>
+    {% for application in applications %}
+        <li>
+            Фрилансер: {{ application.freelancer.username }}<br>
+            Описание опыта: {{ application.experience_description|truncatewords:10 }}<br>  <!-- Ограничиваем описание до 10 слов -->
+            Предложенная цена: {{ application.price_offer }} руб.<br>
+
+            <!-- Ссылка на детали заявки -->
+            <a href="{% url 'application_detail' application.id %}">Подробнее о заявке</a><br>
+
+            {% if not application.is_accepted %}
+                <!-- Кнопка выбора исполнителя -->
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                    <button type="submit">Выбрать исполнителем</button>
+                </form>
+            {% else %}
+                <strong>Исполнитель выбран</strong>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+<!-- Добавляем кнопку для отмены проекта -->
+<form method="post" action="{% url 'cancel_project' project.id %}">
+    {% csrf_token %}
+    <button type="submit">Отменить проект</button>
+</form>
+
+<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет</a>
+
+</body>
+</html>

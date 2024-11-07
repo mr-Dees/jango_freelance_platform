@@ -51,3 +51,13 @@ class Report(models.Model):
 
     def __str__(self):
         return f'Report for {self.project.title} by {self.freelancer.username}'
+
+
+class Review(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField()
+
+    def __str__(self):
+        return f'Review for {self.project.title} by {self.reviewer.username}'

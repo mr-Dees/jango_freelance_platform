@@ -18,5 +18,15 @@
         {% endfor %}
     </ul>
 
+    <h2>Проекты, на которые вы откликнулись:</h2>
+    <ul>
+        {% for project in applied_projects %}
+            <li>{{ project.title }} — Бюджет: {{ project.budget }} руб.
+                <a href="{% url 'cancel_application' project.id %}">Отменить заявку</a></li>
+        {% empty %}
+            <p>Вы еще не подали заявки ни на один проект.</p>
+        {% endfor %}
+    </ul>
+
 </body>
 </html>

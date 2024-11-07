@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали проекта</title>
+</head>
+<body>
+
+<h1>Детали проекта: {{ project.title }}</h1>
+<p><strong>Описание:</strong> {{ project.description }}</p>
+<p><strong>Бюджет:</strong> {{ project.budget }} руб.</p>
+<p><strong>Дедлайн:</strong> {{ project.deadline }}</p>
+
+<h2>Заявки на проект:</h2>
+<ul>
+    {% for application in applications %}
+        <li>
+            Фрилансер: {{ application.freelancer.username }}<br>
+            Описание опыта: {{ application.experience_description }}<br>
+            Предложение: {{ application.price_offer }} руб.<br>
+            <a href="{% url 'application_detail' application.id %}">Подробнее о заявке</a>
+        </li>
+    {% empty %}
+        <p>На данный момент нет заявок на этот проект.</p>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет работодателя</a>
+
+</body>
+</html>
