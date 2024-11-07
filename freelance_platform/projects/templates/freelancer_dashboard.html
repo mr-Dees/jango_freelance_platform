@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет фрилансера</title>
 </head>
 <body>
+    <h1>Добро пожаловать, {{ user.username }}!</h1>
+
+    <h2>Доступные проекты:</h2>
+    <ul>
+        {% for project in available_projects %}
+            <li>{{ project.title }} — Бюджет: {{ project.budget }} руб. (Дедлайн: {{ project.deadline }})
+                <a href="{% url 'apply_for_project' project.id %}">Подать заявку</a></li>
+        {% empty %}
+            <p>Нет доступных проектов.</p>
+        {% endfor %}
+    </ul>
 
 </body>
 </html>
