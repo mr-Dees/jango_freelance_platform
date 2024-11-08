@@ -28,15 +28,9 @@
                 {% if application.project.id == project.id %}
                     Статус вашей заявки: {{ application.get_status_display }}
 
-                    {% if application.status == 'rejected' %}
-                        <!-- Кнопки для повторной подачи или удаления заявки -->
-                        <div style="display: flex; gap: 10px;">
-                            <button onclick="openModal({{ application.id }})">Повторить заявку</button>
-                            <form method="post" action="{% url 'delete_application' application.id %}">
-                                {% csrf_token %}
-                                <button type="submit">Удалить заявку</button>
-                            </form>
-                        </div>
+                    {% if application.status == 'accepted' %}
+                        <!-- Кнопка для отправки отчета -->
+                        <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
                     {% endif %}
                 {% endif %}
             {% endfor %}

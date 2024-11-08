@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Загрузить отчет по проекту</title>
+    <title>Загрузить отчет</title>
 </head>
 <body>
-    <h1>Загрузить отчет по проекту: {{ project.title }}</h1>
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Загрузить отчет</button>
-    </form>
+<h1>Загрузить отчет по проекту</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Загрузить</button>
+</form>
+
+<a href="{% url 'freelancer_dashboard' %}">Вернуться в личный кабинет</a>
 
 </body>
 </html>

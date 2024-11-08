@@ -5,6 +5,7 @@ from .models import User
 from .models import Project
 from .models import Application
 from .models import Review
+from .models import Report
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -32,3 +33,9 @@ class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = ['rating', 'comment']
+
+
+class ReportForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = ['report_file']  # Поле для загрузки файла отчета

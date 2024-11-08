@@ -4,8 +4,9 @@ from django.shortcuts import get_object_or_404
 from .forms import ApplicationForm
 from .forms import ProjectCreationForm
 from django.contrib.auth.decorators import login_required
-from .models import Project, Application
-
+from .models import Project, Application, Report
+from django.shortcuts import render, redirect
+from .forms import ReportForm
 
 def register(request):
     if request.method == 'POST':
@@ -128,18 +129,26 @@ def apply_for_project(request, project_id):
 
 
 @login_required
-def upload_report(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+def upload_report(request, application_id):
+    try:
+        # Получаем заявку по ID и проверяем, что она принадлежит текущему фрилансеру
+        application = get_object_or_404(Application, id=application_id, freelancer=request.user)
+    except Application.DoesNotExist:
+        print(f"Заявка с ID {application_id} не найдена или не принадлежит пользователю {request.user.username}")
+        return redirect('freelancer_dashboard')
+
+    # Проверяем, что заявка была принята работодателем
+    if application.status != 'accepted':
+        return redirect('freelancer_dashboard')
 
     if request.method == 'POST':
         form = ReportForm(request.POST, request.FILES)
         if form.is_valid():
             report = form.save(commit=False)
             report.freelancer = request.user
-            report.project = project
+            report.project = application.project
             report.save()
             return redirect('freelancer_dashboard')
-
     else:
         form = ReportForm()
 

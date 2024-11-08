@@ -25,4 +25,6 @@ urlpatterns = [
     # Повторная подача и удаление заявок (для фрилансеров)
     path('retry_application/<int:application_id>/', retry_application, name='retry_application'),
     path('delete_application/<int:application_id>/', delete_application, name='delete_application'),
+    # Загрузка отчета (для фрилансеров)
+    path('upload_report/<int:application_id>/', upload_report, name='upload_report'),
 ]
