@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Завершение проекта</title>
+</head>
+<body>
+
+<h1>Завершение проекта: {{ application.project.title }}</h1>
+
+<p><strong>Фрилансер:</strong> {{ application.freelancer.username }}</p>
+<p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Завершить проект</button>
+</form>
+
+<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет</a>
+
+</body>
+</html>

@@ -37,13 +37,15 @@ class Application(models.Model):
         ('pending', 'На рассмотрении'),
         ('accepted', 'Принята'),
         ('rejected', 'Отклонена'),
+        ('submitted', 'Отчет отправлен'),
+        ('completed', 'Завершена'),
     ]
 
     freelancer = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'freelancer'})
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     price_offer = models.DecimalField(max_digits=10, decimal_places=2)
     experience_description = models.TextField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  # Новое поле статуса
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
 
     def __str__(self):
         return f'{self.freelancer.username} - {self.project.title}'
@@ -54,6 +56,14 @@ class Report(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     report_file = models.FileField(upload_to='reports/')
     submission_date = models.DateTimeField(auto_now_add=True)
+
+    # Статусы отчета
+    STATUS_CHOICES = [
+        ('submitted', 'Отчет отправлен'),
+        ('accepted', 'Отчет принят'),
+        ('rejected', 'Отчет отклонен'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
 
     def __str__(self):
         return f'Report for {self.project.title} by {self.freelancer.username}'

@@ -8,6 +8,7 @@ from .models import Project, Application, Report
 from django.shortcuts import render, redirect
 from .forms import ReportForm
 
+
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -130,12 +131,8 @@ def apply_for_project(request, project_id):
 
 @login_required
 def upload_report(request, application_id):
-    try:
-        # Получаем заявку по ID и проверяем, что она принадлежит текущему фрилансеру
-        application = get_object_or_404(Application, id=application_id, freelancer=request.user)
-    except Application.DoesNotExist:
-        print(f"Заявка с ID {application_id} не найдена или не принадлежит пользователю {request.user.username}")
-        return redirect('freelancer_dashboard')
+    # Получаем заявку по ID и проверяем, что она принадлежит текущему фрилансеру
+    application = get_object_or_404(Application, id=application_id, freelancer=request.user)
 
     # Проверяем, что заявка была принята работодателем
     if application.status != 'accepted':
@@ -148,11 +145,68 @@ def upload_report(request, application_id):
             report.freelancer = request.user
             report.project = application.project
             report.save()
+
+            # Обновляем статус заявки на 'submitted' после отправки отчета
+            application.status = 'submitted'
+            application.save()
+
             return redirect('freelancer_dashboard')
     else:
         form = ReportForm()
 
     return render(request, 'upload_report.html', {'form': form})
+
+
+@login_required
+def complete_project(request, application_id):
+    # Получаем заявку по ID и проверяем, что проект принадлежит текущему работодателю
+    application = get_object_or_404(Application, id=application_id, project__employer=request.user)
+
+    # Проверяем, что заявка находится в статусе 'submitted'
+    if application.status != 'submitted':
+        return redirect('employer_dashboard')
+
+    if request.method == 'POST':
+        # Обновляем статус заявки на 'completed'
+        application.status = 'completed'
+        application.save()
+
+        # Обновляем статус проекта на 'completed'
+        project = application.project
+        project.status = 'completed'
+        project.save()
+
+        return redirect('employer_dashboard')
+
+    return render(request, 'complete_project.html', {'application': application})
+
+
+@login_required
+def review_report(request, application_id):
+    # Получаем заявку по ID и проверяем, что проект принадлежит текущему работодателю
+    application = get_object_or_404(Application, id=application_id, project__employer=request.user)
+
+    # Получаем связанный с заявкой отчет
+    report = get_object_or_404(Report, project=application.project)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')  # Определяем действие: принять или отклонить
+
+        if action == 'accept':
+            report.status = 'accepted'
+            # Обновляем статус проекта на "completed"
+            project = report.project
+            project.status = 'completed'
+            project.save()
+        elif action == 'reject':
+            report.status = 'rejected'
+
+        # Сохраняем изменения в отчете
+        report.save()
+
+        return redirect('employer_dashboard')
+
+    return render(request, 'review_report.html', {'report': report})
 
 
 @login_required

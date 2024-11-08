@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр отчета</title>
+</head>
+<body>
+
+<h1>Отчет по проекту: {{ report.project.title }}</h1>
+
+<p><strong>Фрилансер:</strong> {{ report.freelancer.username }}</p>
+<p><strong>Дата отправки:</strong> {{ report.submission_date }}</p>
+
+<!-- Ссылка на скачивание отчета -->
+<a href="{{ report.report_file.url }}" download>Скачать отчет</a>
+
+<!-- Кнопки для принятия или отклонения отчета -->
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" name="action" value="accept">Принять отчет</button>
+    <button type="submit" name="action" value="reject">Отклонить отчет</button>
+</form>
+
+<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет</a>
+
+</body>
+</html>

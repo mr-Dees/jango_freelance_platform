@@ -31,6 +31,14 @@
                     {% if application.status == 'accepted' %}
                         <!-- Кнопка для отправки отчета -->
                         <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
+                    {% elif application.status == 'submitted' %}
+                        <p><strong>Отчет отправлен. Ожидается оценка работодателя.</strong></p>
+                    {% elif application.status == 'completed' %}
+                        <p><strong>Проект завершен.</strong></p>
+                    {% elif application.status == 'rejected' %}
+                        <p><strong>Отчет отклонен. Требуется доработка.</strong></p>
+                        <!-- Кнопка для повторной отправки отчета -->
+                        <a href="{% url 'upload_report' application.id %}">Повторно отправить отчет</a>
                     {% endif %}
                 {% endif %}
             {% endfor %}

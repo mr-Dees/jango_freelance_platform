@@ -16,11 +16,25 @@
             Описание опыта: {{ application.experience_description|truncatewords:10 }}<br>
             Предложенная цена: {{ application.price_offer }} руб.<br>
 
-            <!-- Ссылка на детали заявки -->
-            <a href="{% url 'application_detail' application.id %}">Подробнее о заявке</a><br>
-
-            <!-- Отображаем статус заявки -->
+            <!-- Статус заявки -->
             <p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
+
+            {% if application.status == 'submitted' %}
+                <!-- Отображаем отчет -->
+                <p><strong>Отчет получен:</strong></p>
+                {% if application.project.report_set.exists %}
+                    <!-- Проверяем наличие отчета -->
+                    {% for report in application.project.report_set.all %}
+                        <a href="{{ report.report_file.url }}" download>Скачать отчет</a><br>
+                        <!-- Кнопка для принятия или отклонения отчета -->
+                        <a href="{% url 'review_report' report.id %}">Просмотреть и оценить отчет</a>
+                    {% endfor %}
+                {% else %}
+                    <p>Отчет пока не загружен.</p>
+                {% endif %}
+            {% elif application.status == 'completed' %}
+                <p><strong>Проект завершен.</strong></p>
+            {% endif %}
         </li>
     {% endfor %}
 </ul>
