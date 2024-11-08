@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали проекта</title>
+</head>
+<body>
+
+<h1>Проект: {{ project.title }}</h1>
+
+<p><strong>Исполнитель:</strong> {{ application.freelancer.username }}</p>
+<p><strong>Бюджет:</strong> {{ project.budget }} руб.</p>
+<p><strong>Дедлайн:</strong> {{ project.deadline }}</p>
+
+<!-- Статус работы -->
+{% if report %}
+    <p><strong>Статус работы:</strong> Отчет отправлен</p>
+
+    <!-- Кнопка для просмотра и оценки отчета -->
+    <a href="{% url 'review_report' report.id %}">Просмотреть и оценить отчет</a>
+{% else %}
+    <p><strong>Статус работы:</strong> В процессе выполнения</p>
+{% endif %}
+
+<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет</a>
+
+</body>
+</html>

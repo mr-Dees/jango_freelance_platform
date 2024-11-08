@@ -182,12 +182,9 @@ def complete_project(request, application_id):
 
 
 @login_required
-def review_report(request, application_id):
-    # Получаем заявку по ID и проверяем, что проект принадлежит текущему работодателю
-    application = get_object_or_404(Application, id=application_id, project__employer=request.user)
-
-    # Получаем связанный с заявкой отчет
-    report = get_object_or_404(Report, project=application.project)
+def review_report(request, report_id):
+    # Получаем отчет по ID и проверяем, что проект принадлежит текущему работодателю
+    report = get_object_or_404(Report, id=report_id, project__employer=request.user)
 
     if request.method == 'POST':
         action = request.POST.get('action')  # Определяем действие: принять или отклонить
@@ -218,17 +215,36 @@ def view_applications(request, project_id):
     applications = Application.objects.filter(project=project)
 
     if request.method == 'POST':
+        # Получаем ID заявки из формы
         application_id = request.POST.get('application_id')
-        action = request.POST.get('action')  # Определяем действие: принять или отклонить
-        application = get_object_or_404(Application, id=application_id)
+        action = request.POST.get('action')  # Определяем действие (принять или отклонить)
+
+        print(f"Получен POST-запрос: action={action}, application_id={application_id}")
+
+        # Проверяем, что данные формы получены корректно
+        if not application_id or not action:
+            print("Ошибка: не удалось получить данные из формы.")
+            return render(request, 'view_applications.html', {'project': project, 'applications': applications})
+
+        # Получаем заявку по ID
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            print(f"Ошибка: заявка с ID {application_id} не найдена.")
+            return render(request, 'view_applications.html', {'project': project, 'applications': applications})
 
         if action == 'accept':
+            # Если заявка принята
+            print(f"Принятие заявки с ID {application_id}")
             application.status = 'accepted'
             project.status = 'in_progress'  # Обновляем статус проекта на "В работе"
             project.save()
         elif action == 'reject':
+            # Если заявка отклонена
+            print(f"Отклонение заявки с ID {application_id}")
             application.status = 'rejected'
 
+        # Сохраняем изменения в заявке
         application.save()
 
     return render(request, 'view_applications.html', {'project': project, 'applications': applications})
@@ -308,10 +324,22 @@ def project_detail(request, project_id):
     # Получаем проект по ID и проверяем, что он принадлежит текущему работодателю
     project = get_object_or_404(Project, id=project_id, employer=request.user)
 
-    # Получаем все заявки на этот проект
-    applications = Application.objects.filter(project=project)
+    # Проверяем, есть ли подтвержденный исполнитель (заявка со статусом 'accepted')
+    application = Application.objects.filter(project=project, status='accepted').first()
 
-    return render(request, 'view_project.html', {'project': project, 'applications': applications})
+    # Если проект в работе и есть исполнитель
+    if project.status == 'in_progress' and application:
+        # Проверяем наличие отчета
+        report = Report.objects.filter(project=project).first()
+        return render(request, 'project_in_progress.html', {
+            'project': project,
+            'application': application,
+            'report': report,
+        })
+
+    # Если исполнитель еще не выбран (проект открыт или заявки на рассмотрении)
+    applications = Application.objects.filter(project=project)
+    return render(request, 'view_applications.html', {'project': project, 'applications': applications})
 
 
 @login_required

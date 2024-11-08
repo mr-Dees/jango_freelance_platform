@@ -19,21 +19,18 @@
             <!-- Статус заявки -->
             <p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
 
-            {% if application.status == 'submitted' %}
-                <!-- Отображаем отчет -->
-                <p><strong>Отчет получен:</strong></p>
-                {% if application.project.report_set.exists %}
-                    <!-- Проверяем наличие отчета -->
-                    {% for report in application.project.report_set.all %}
-                        <a href="{{ report.report_file.url }}" download>Скачать отчет</a><br>
-                        <!-- Кнопка для принятия или отклонения отчета -->
-                        <a href="{% url 'review_report' report.id %}">Просмотреть и оценить отчет</a>
-                    {% endfor %}
-                {% else %}
-                    <p>Отчет пока не загружен.</p>
-                {% endif %}
-            {% elif application.status == 'completed' %}
-                <p><strong>Проект завершен.</strong></p>
+            {% if application.status == 'pending' %}
+                <!-- Кнопки для принятия или отклонения заявки -->
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                    <button type="submit" name="action" value="accept">Принять</button>
+                    <button type="submit" name="action" value="reject">Отклонить</button>
+                </form>
+            {% elif application.status == 'accepted' %}
+                <p><strong>Исполнитель выбран</strong></p>
+            {% elif application.status == 'rejected' %}
+                <p><strong>Заявка отклонена</strong></p>
             {% endif %}
         </li>
     {% endfor %}

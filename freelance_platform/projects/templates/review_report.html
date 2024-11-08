@@ -12,7 +12,7 @@
 <p><strong>Фрилансер:</strong> {{ report.freelancer.username }}</p>
 <p><strong>Дата отправки:</strong> {{ report.submission_date }}</p>
 
-<!-- Ссылка на скачивание отчета -->
+<!-- Ссылка на скачивание отчета (если нужно) -->
 <a href="{{ report.report_file.url }}" download>Скачать отчет</a>
 
 <!-- Кнопки для принятия или отклонения отчета -->
@@ -21,6 +21,9 @@
     <button type="submit" name="action" value="accept">Принять отчет</button>
     <button type="submit" name="action" value="reject">Отклонить отчет</button>
 </form>
+
+<!-- Кнопка для возврата к проекту -->
+<a href="{% url 'project_detail' report.project.id %}">Вернуться к проекту</a>
 
 <a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет</a>
 
