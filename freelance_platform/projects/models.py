@@ -17,16 +17,19 @@ class User(AbstractUser):
 
 
 class Project(models.Model):
+    STATUS_CHOICES = [
+        ('open', 'Открыт'),
+        ('in_progress', 'В работе'),
+        ('completed', 'Завершен'),
+        ('closed', 'Закрыт'),
+    ]
+
     employer = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'employer'})
     title = models.CharField(max_length=255)
     description = models.TextField()
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     deadline = models.DateField()
-    status = models.CharField(
-        max_length=50,
-        choices=[('open', 'Открыт'), ('in_progress', 'В работе'), ('completed', 'Завершен')],
-        default='open'
-    )
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='open')
 
     def __str__(self):
         return self.title

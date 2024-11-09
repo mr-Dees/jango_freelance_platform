@@ -6,7 +6,6 @@
     <title>Личный кабинет фрилансера</title>
 </head>
 <body>
-
     <h1>Добро пожаловать, {{ user.username }}!</h1>
 
     <h2>Доступные проекты:</h2>
@@ -31,7 +30,7 @@
                         <p><strong>Статус вашей заявки:</strong> {{ application.get_status_display }}</p>
 
                         {% if application.status == 'accepted' %}
-                            <!-- Если заявка принята, но отчет еще не отправлен -->
+                            <!-- Если заявка принята -->
                             <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
 
                         {% elif application.status == 'submitted' %}
@@ -39,19 +38,20 @@
 
                         {% elif application.status == 'report_rejected' %}
                             <p><strong>Отчет отклонен. Требуется доработка.</strong></p>
-                            <!-- Кнопка для повторной отправки отчета -->
                             <a href="{% url 'upload_report' application.id %}">Отправить исправленный отчет</a>
 
                         {% elif application.status == 'report_accepted' %}
                             <p><strong>Отчет принят. Проект успешно завершен.</strong></p>
 
                         {% elif application.status == 'rejected' %}
-                            <p><strong>Заявка отклонена.</strong></p>
-                            <!-- Кнопка для повторной подачи заявки -->
-                            <form method="post" action="{% url 'retry_application' application.id %}">
-                                {% csrf_token %}
-                                <button type="button" onclick="openModal('{{ application.id }}')">Подать повторную заявку</button>
-                            </form>
+                            {% if project.status == 'closed' %}
+                                <p><strong>Заявка отклонена. Проект закрыт.</strong></p>
+                            {% elif project.status == 'in_progress' %}
+                                <p><strong>Заявка отклонена. Проект находится в работе у другого фрилансера.</strong></p>
+                            {% else %}
+                                <p><strong>Заявка отклонена.</strong></p>
+                                <button onclick="openModal('{{ application.id }}')">Подать повторную заявку</button>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 {% endfor %}
@@ -80,21 +80,15 @@
     </div>
 
     <script>
-    function openModal(applicationId) {
-        document.getElementById('modal').style.display = 'block';
-        document.getElementById('applicationId').value = applicationId;
-        document.getElementById('retryForm').action = `/retry_application/${applicationId}/`;
-    }
+        function openModal(applicationId) {
+            document.getElementById('modal').style.display = 'block';
+            document.getElementById('applicationId').value = applicationId;
+            document.getElementById('retryForm').action = `/retry_application/${applicationId}/`;
+        }
 
-    function closeModal() {
-        document.getElementById('modal').style.display = 'none';
-    }
-
-    // Обычная отправка формы с перезагрузкой страницы
-    document.getElementById('retryForm').addEventListener('submit', function(e) {
-        // Форма отправится обычным способом
-        return true;
-    });
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
