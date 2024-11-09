@@ -131,22 +131,18 @@ def apply_for_project(request, project_id):
 
 @login_required
 def upload_report(request, application_id):
-    # Получаем заявку по ID и проверяем, что она принадлежит текущему фрилансеру
-    application = get_object_or_404(Application, id=application_id, freelancer=request.user)
-
-    # Проверяем, что заявка была принята работодателем
-    if application.status != 'accepted':
-        return redirect('freelancer_dashboard')
+    application = get_object_or_404(Application, id=application_id)
 
     if request.method == 'POST':
         form = ReportForm(request.POST, request.FILES)
         if form.is_valid():
             report = form.save(commit=False)
-            report.freelancer = request.user
-            report.project = application.project
+            report.application = application
+            report.project = application.project  # Связываем отчет с проектом
+            report.freelancer = application.freelancer  # Связываем отчет с фрилансером
             report.save()
 
-            # Обновляем статус заявки на 'submitted' после отправки отчета
+            # Обновляем статус заявки на "submitted"
             application.status = 'submitted'
             application.save()
 
@@ -182,29 +178,27 @@ def complete_project(request, application_id):
 
 
 @login_required
-def review_report(request, application_id):
-    # Получаем заявку по ID и проверяем, что проект принадлежит текущему работодателю
-    application = get_object_or_404(Application, id=application_id, project__employer=request.user)
-
-    # Получаем связанный с заявкой отчет
-    report = get_object_or_404(Report, project=application.project)
+def review_report(request, report_id):
+    report = get_object_or_404(Report, id=report_id)
+    application = Application.objects.get(project=report.project, freelancer=report.freelancer)
 
     if request.method == 'POST':
-        action = request.POST.get('action')  # Определяем действие: принять или отклонить
+        action = request.POST.get('action')
 
         if action == 'accept':
-            report.status = 'accepted'
-            # Обновляем статус проекта на "completed"
-            project = report.project
-            project.status = 'completed'
-            project.save()
+            # Принятие отчета
+            application.status = 'completed'
+            application.save()
+            report.project.status = 'completed'
+            report.project.save()
+
         elif action == 'reject':
-            report.status = 'rejected'
+            # Отклонение отчета
+            application.status = 'rejected'
+            application.save()
 
-        # Сохраняем изменения в отчете
-        report.save()
-
-        return redirect('employer_dashboard')
+        # Перенаправляем на страницу с заявками проекта
+        return redirect('view_applications', project_id=report.project.id)
 
     return render(request, 'review_report.html', {'report': report})
 
@@ -305,13 +299,41 @@ def cancel_project(request, project_id):
 
 @login_required
 def project_detail(request, project_id):
-    # Получаем проект по ID и проверяем, что он принадлежит текущему работодателю
-    project = get_object_or_404(Project, id=project_id, employer=request.user)
+    project = get_object_or_404(Project, id=project_id)
+    applications = project.application_set.all()
 
-    # Получаем все заявки на этот проект
-    applications = Application.objects.filter(project=project)
+    # Проверяем, есть ли принятая заявка
+    accepted_application = applications.filter(status='accepted').first()
 
-    return render(request, 'view_project.html', {'project': project, 'applications': applications})
+    # Проверяем, был ли отправлен отчет
+    submitted_application = applications.filter(status='submitted').first()
+
+    if submitted_application:
+        # Если отчет отправлен, показываем информацию о фрилансере и статусе отчета
+        context = {
+            'project': project,
+            'freelancer': submitted_application.freelancer,
+            'application_status': submitted_application.get_status_display(),
+            'report': submitted_application.project.report_set.first(),  # Получаем первый отчет
+        }
+        return render(request, 'project_assigned.html', context)
+
+    elif accepted_application:
+        # Если есть принятая заявка, но отчет еще не отправлен
+        context = {
+            'project': project,
+            'freelancer': accepted_application.freelancer,
+            'application_status': accepted_application.get_status_display(),
+        }
+        return render(request, 'project_assigned.html', context)
+
+    else:
+        # Если нет принятой заявки, показываем список заявок
+        context = {
+            'project': project,
+            'applications': applications,
+        }
+        return render(request, 'view_project.html', context)
 
 
 @login_required
