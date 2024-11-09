@@ -187,17 +187,26 @@ def review_report(request, report_id):
 
         if action == 'accept':
             # Принятие отчета
-            application.status = 'completed'
+            report.status = 'accepted'
+            report.save()
+            # Обновляем статус заявки на "отчет принят"
+            application.status = 'report_accepted'
             application.save()
+            # Завершаем проект
             report.project.status = 'completed'
             report.project.save()
 
         elif action == 'reject':
             # Отклонение отчета
-            application.status = 'rejected'
+            report.status = 'rejected'
+            report.save()
+            # Обновляем статус заявки на "отчет отклонен"
+            application.status = 'report_rejected'
             application.save()
+            # Проект остается в работе
+            report.project.status = 'in_progress'
+            report.project.save()
 
-        # Перенаправляем на страницу с заявками проекта
         return redirect('view_applications', project_id=report.project.id)
 
     return render(request, 'review_report.html', {'report': report})
@@ -355,20 +364,16 @@ def delete_application(request, application_id):
 
 @login_required
 def retry_application(request, application_id):
-    # Получаем заявку по ID и проверяем, что она принадлежит текущему фрилансеру
-    application = get_object_or_404(Application, id=application_id, freelancer=request.user)
-    project = application.project
-
     if request.method == 'POST':
-        # Повторная подача заявки возможна только если проект открыт
-        if project.status == 'open':
-            # Обновляем условия заявки
-            new_price_offer = request.POST.get('price_offer')
-            new_experience_description = request.POST.get('experience_description')
+        # Получаем существующую заявку
+        application = get_object_or_404(Application, id=application_id)
 
-            application.price_offer = new_price_offer
-            application.experience_description = new_experience_description
-            application.status = 'pending'  # Сбрасываем статус на "На рассмотрении"
-            application.save()
+        # Обновляем данные существующей заявки
+        application.price_offer = request.POST.get('price_offer')
+        application.experience_description = request.POST.get('experience_description')
+        application.status = 'pending'  # Меняем статус обратно на "на рассмотрении"
+        application.save()
 
-    return redirect('freelancer_dashboard')
+        return redirect('freelancer_dashboard')
+
+    return redirect('home')

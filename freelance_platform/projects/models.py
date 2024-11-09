@@ -38,6 +38,8 @@ class Application(models.Model):
         ('accepted', 'Принята'),
         ('rejected', 'Отклонена'),
         ('submitted', 'Отчет отправлен'),
+        ('report_rejected', 'Отчет отклонен'),
+        ('report_accepted', 'Отчет принят'),
         ('completed', 'Завершена'),
     ]
 
@@ -45,7 +47,7 @@ class Application(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     price_offer = models.DecimalField(max_digits=10, decimal_places=2)
     experience_description = models.TextField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
 
     def __str__(self):
         return f'{self.freelancer.username} - {self.project.title}'

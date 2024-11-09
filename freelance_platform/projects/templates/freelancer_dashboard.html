@@ -7,77 +7,94 @@
 </head>
 <body>
 
-<h1>Добро пожаловать, {{ user.username }}!</h1>
+    <h1>Добро пожаловать, {{ user.username }}!</h1>
 
-<h2>Доступные проекты:</h2>
-<ul>
-    {% for project in available_projects %}
-        <li>{{ project.title }} — Бюджет: {{ project.budget }} руб. (Дедлайн: {{ project.deadline }})
-            <a href="{% url 'apply_for_project' project.id %}">Подать заявку</a></li>
-    {% empty %}
-        <p>Нет доступных проектов.</p>
-    {% endfor %}
-</ul>
+    <h2>Доступные проекты:</h2>
+    <ul>
+        {% for project in available_projects %}
+            <li>
+                {{ project.title }} — Бюджет: {{ project.budget }} руб. (Дедлайн: {{ project.deadline }})
+                <a href="{% url 'apply_for_project' project.id %}">Подать заявку</a>
+            </li>
+        {% empty %}
+            <p>Нет доступных проектов.</p>
+        {% endfor %}
+    </ul>
 
-<h2>Проекты, на которые вы откликнулись:</h2>
-<ul>
-    {% for project in applied_projects %}
-        <li>{{ project.title }} — Бюджет: {{ project.budget }} руб.
-            <!-- Отображаем статус заявки -->
-            {% for application in applications %}
-                {% if application.project.id == project.id %}
-                    Статус вашей заявки: {{ application.get_status_display }}
+    <h2>Проекты, на которые вы откликнулись:</h2>
+    <ul>
+        {% for project in applied_projects %}
+            <li>
+                {{ project.title }} — Бюджет: {{ project.budget }} руб.
+                {% for application in applications %}
+                    {% if application.project.id == project.id %}
+                        <p><strong>Статус вашей заявки:</strong> {{ application.get_status_display }}</p>
 
-                    {% if application.status == 'accepted' %}
-                        <!-- Кнопка для отправки отчета -->
-                        <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
-                    {% elif application.status == 'submitted' %}
-                        <p><strong>Отчет отправлен. Ожидается оценка работодателя.</strong></p>
-                    {% elif application.status == 'completed' %}
-                        <p><strong>Проект завершен.</strong></p>
-                    {% elif report.status == 'rejected' %}
-                        <p><strong>Отчет отклонен. Требуется доработка.</strong></p>
-                        <!-- Кнопка для повторной отправки отчета -->
-                        <a href="{% url 'upload_report' application.id %}">Повторно отправить отчет</a>
+                        {% if application.status == 'accepted' %}
+                            <!-- Если заявка принята, но отчет еще не отправлен -->
+                            <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
+
+                        {% elif application.status == 'submitted' %}
+                            <p><strong>Отчет отправлен. Ожидается оценка работодателя.</strong></p>
+
+                        {% elif application.status == 'report_rejected' %}
+                            <p><strong>Отчет отклонен. Требуется доработка.</strong></p>
+                            <!-- Кнопка для повторной отправки отчета -->
+                            <a href="{% url 'upload_report' application.id %}">Отправить исправленный отчет</a>
+
+                        {% elif application.status == 'report_accepted' %}
+                            <p><strong>Отчет принят. Проект успешно завершен.</strong></p>
+
+                        {% elif application.status == 'rejected' %}
+                            <p><strong>Заявка отклонена.</strong></p>
+                            <!-- Кнопка для повторной подачи заявки -->
+                            <form method="post" action="{% url 'retry_application' application.id %}">
+                                {% csrf_token %}
+                                <button type="button" onclick="openModal('{{ application.id }}')">Подать повторную заявку</button>
+                            </form>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
-            {% endfor %}
-        </li>
-    {% empty %}
-        <p>Вы еще не подали заявки ни на один проект.</p>
-    {% endfor %}
-</ul>
+                {% endfor %}
+            </li>
+        {% empty %}
+            <p>Вы еще не подали заявки ни на один проект.</p>
+        {% endfor %}
+    </ul>
 
-<!-- Модальное окно для ввода новых условий -->
-<div id="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
-    <h3>Повторная заявка</h3>
-    <form method="post" id="retryForm">
-        {% csrf_token %}
-        <input type="hidden" name="application_id" id="applicationId">
-        <label for="price_offer">Предложенная цена:</label><br>
-        <input type="number" name="price_offer" step="0.01"><br><br>
-        <label for="experience_description">Описание опыта:</label><br>
-        <textarea name="experience_description"></textarea><br><br>
-        <button type="submit">Отправить</button>
-        <button type="button" onclick="closeModal()">Отмена</button>
-    </form>
-</div>
+    <!-- Модальное окно для ввода новых условий -->
+    <div id="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+        <h3>Повторная заявка</h3>
+        <form method="post" id="retryForm">
+            {% csrf_token %}
+            <input type="hidden" name="application_id" id="applicationId">
 
-<script>
-// Открытие модального окна и установка правильного URL
-function openModal(applicationId) {
-    document.getElementById('modal').style.display = 'block';
-    document.getElementById('applicationId').value = applicationId;
+            <label for="price_offer">Предложенная цена:</label><br>
+            <input type="number" name="price_offer" step="0.01" required><br><br>
 
-    // Обновляем URL формы для повторной подачи заявки
-    document.getElementById('retryForm').action = "{% url 'retry_application' application_id=0 %}".replace('0', applicationId);
-}
+            <label for="experience_description">Описание опыта:</label><br>
+            <textarea name="experience_description" required></textarea><br><br>
 
-// Закрытие модального окна
-function closeModal() {
-    document.getElementById('modal').style.display = 'none';
-}
-</script>
+            <button type="submit">Отправить</button>
+            <button type="button" onclick="closeModal()">Отмена</button>
+        </form>
+    </div>
 
+    <script>
+    function openModal(applicationId) {
+        document.getElementById('modal').style.display = 'block';
+        document.getElementById('applicationId').value = applicationId;
+        document.getElementById('retryForm').action = `/retry_application/${applicationId}/`;
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    // Обычная отправка формы с перезагрузкой страницы
+    document.getElementById('retryForm').addEventListener('submit', function(e) {
+        // Форма отправится обычным способом
+        return true;
+    });
+    </script>
 </body>
 </html>
