@@ -76,6 +76,17 @@ def employer_dashboard(request):
 
     projects = Project.objects.filter(employer=request.user)
 
+    sort_param = request.GET.get('sort')
+    if sort_param:
+        if sort_param == 'title':
+            projects = projects.order_by('title')
+        elif sort_param == 'budget':
+            projects = projects.order_by('budget')
+        elif sort_param == 'deadline':
+            projects = projects.order_by('deadline')
+        elif sort_param == 'status':
+            projects = projects.order_by('status')
+
     if request.method == 'POST':
         form = ProjectCreationForm(request.POST)
         if form.is_valid():
@@ -94,14 +105,40 @@ def freelancer_dashboard(request):
     if request.user.role != 'freelancer':
         return redirect('home')
 
+    # Получаем параметры сортировки
+    sort_param = request.GET.get('sort')
+    applied_sort_param = request.GET.get('applied_sort')
+
     # Доступные проекты (на которые фрилансер еще не подал заявку)
     available_projects = Project.objects.filter(status='open').exclude(application__freelancer=request.user)
+
+    # Сортировка доступных проектов
+    if sort_param:
+        if sort_param == 'title':
+            available_projects = available_projects.order_by('title')
+        elif sort_param == 'budget':
+            available_projects = available_projects.order_by('budget')
+        elif sort_param == 'deadline':
+            available_projects = available_projects.order_by('deadline')
+        elif sort_param == 'status':
+            available_projects = available_projects.order_by('status')
 
     # Проекты, на которые фрилансер уже подал заявку
     applied_projects = Project.objects.filter(application__freelancer=request.user)
 
     # Получаем все заявки фрилансера для отображения их статусов
     applications = Application.objects.filter(freelancer=request.user)
+
+    # Сортировка проектов с заявками
+    if applied_sort_param:
+        if applied_sort_param == 'title':
+            applied_projects = applied_projects.order_by('title')
+        elif applied_sort_param == 'budget':
+            applied_projects = applied_projects.order_by('budget')
+        elif applied_sort_param == 'deadline':
+            applied_projects = applied_projects.order_by('deadline')
+        elif applied_sort_param == 'status':
+            applied_projects = applied_projects.order_by('status')
 
     return render(request, 'freelancer_dashboard.html', {
         'available_projects': available_projects,

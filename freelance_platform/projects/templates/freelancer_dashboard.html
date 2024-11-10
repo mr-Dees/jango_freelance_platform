@@ -4,11 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Личный кабинет фрилансера</title>
+    <style>
+        .sorting-links {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .sorting-links a {
+            text-decoration: none;
+            color: #4CAF50;
+            margin: 0 5px;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+        .sorting-links a:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .active-sort {
+            background-color: #4CAF50;
+            color: white !important;
+        }
+    </style>
 </head>
 <body>
     <h1>Добро пожаловать, {{ user.username }}!</h1>
 
     <h2>Доступные проекты:</h2>
+    <div class="sorting-links">
+        Сортировать по:
+        <a href="?sort=title">Названию</a> |
+        <a href="?sort=budget">Бюджету</a> |
+        <a href="?sort=deadline">Срокам</a> |
+        <a href="?sort=status">Статусу</a>
+        {% if request.GET.sort %}
+            | <a href="?">Сбросить сортировку</a>
+        {% endif %}
+    </div>
     <ul>
         {% for project in available_projects %}
             <li>
@@ -21,6 +54,16 @@
     </ul>
 
     <h2>Проекты, на которые вы откликнулись:</h2>
+    <div class="sorting-links">
+        Сортировать по:
+        <a href="?applied_sort=title">Названию</a> |
+        <a href="?applied_sort=budget">Бюджету</a> |
+        <a href="?applied_sort=deadline">Срокам</a> |
+        <a href="?applied_sort=status">Статусу</a>
+        {% if request.GET.applied_sort %}
+            | <a href="?">Сбросить сортировку</a>
+        {% endif %}
+    </div>
     <ul>
         {% for project in applied_projects %}
             <li>
