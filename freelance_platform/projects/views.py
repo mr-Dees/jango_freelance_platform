@@ -36,7 +36,11 @@ def create_project(request):
     return render(request, 'create_project.html', {'form': form})
 
 
-# Стартовая страница
+def index(request):
+    return render(request, 'index.html')
+
+
+# Cтраница входа/регистрации
 def home(request):
     return render(request, 'home.html')
 
@@ -172,7 +176,7 @@ def upload_report(request, application_id):
 
             # Отправляем уведомление работодателю о новом отчете
             send_new_report_notification(report)
-            
+
             return redirect('freelancer_dashboard')
     else:
         form = ReportForm()

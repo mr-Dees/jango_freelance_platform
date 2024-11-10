@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Фриланс Платформа{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em;
+            position: relative;
+            height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        .logo {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            margin-left: 20px;
+        }
+        .logo:hover {
+            text-decoration: underline;
+        }
+        .auth-buttons {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .auth-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            color: #4CAF50;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .auth-button:hover {
+            background-color: #e8f5e9;
+        }
+        .dashboard-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            color: #4CAF50;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .dashboard-button:hover {
+            background-color: #e8f5e9;
+        }
+        .nav {
+            background-color: #45a049;
+            padding: 1em;
+            display: flex;
+            align-items: center;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 0.5em 1em;
+            border-radius: 5px;
+        }
+        .nav a:hover {
+            background-color: #357a38;
+        }
+    </style>
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+    <div class="header">
+        <a href="{% url 'index' %}" class="logo">Фриланс платформа</a>
+        <div class="auth-buttons">
+            {% if user.is_authenticated %}
+                {% if user.is_employer %}
+                    <a href="{% url 'employer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
+                {% else %}
+                    <a href="{% url 'freelancer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="auth-button">Войти</a>
+                <a href="{% url 'register' %}" class="auth-button">Зарегистрироваться</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="nav">
+        <a href="#about">О платформе</a>
+        <a href="#contact">Контакты</a>
+        {% block additional_nav %}{% endblock %}
+    </div>
+
+    {% block content %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Фриланс Платформа{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 2em auto;
+        padding: 0 1em;
+    }
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2em;
+        margin-top: 2em;
+    }
+    .feature-card {
+        background-color: white;
+        padding: 1.5em;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="features">
+        <div class="feature-card">
+            <h2>Для заказчиков</h2>
+            <p>Размещайте проекты и находите профессиональных исполнителей</p>
+            <ul>
+                <li>Быстрый поиск исполнителей</li>
+                <li>Безопасная сделка</li>
+                <li>Гарантия качества</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <h2>Для фрилансеров</h2>
+            <p>Находите интересные проекты и развивайтесь профессионально</p>
+            <ul>
+                <li>Актуальные проекты</li>
+                <li>Удобные условия работы</li>
+                <li>Своевременная оплата</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
