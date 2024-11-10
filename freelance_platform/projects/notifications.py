@@ -71,10 +71,17 @@ def send_report_rejected_notification(report):
 def send_new_application_notification(application):
     """Уведомление работодателю о новой заявке"""
     subject = f'Новая заявка на проект "{application.project.title}"'
-    message = render_to_string('email/new_application.html', {
+
+    context = {
         'application': application,
         'project': application.project,
-    })
+        'freelancer': application.freelancer,
+        'price_offer': application.price_offer,
+        'experience_description': application.experience_description
+    }
+
+    message = render_to_string('email/new_application.html', context)
+
     send_mail(
         subject,
         message,
@@ -87,10 +94,15 @@ def send_new_application_notification(application):
 def send_new_report_notification(report):
     """Уведомление работодателю о новом отчете"""
     subject = f'Новый отчет по проекту "{report.project.title}"'
-    message = render_to_string('email/new_report.html', {
+
+    context = {
         'report': report,
         'project': report.project,
-    })
+        'freelancer': report.freelancer,
+    }
+
+    message = render_to_string('email/new_report.html', context)
+
     send_mail(
         subject,
         message,

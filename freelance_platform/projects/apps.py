@@ -1,3 +1,4 @@
+import os
 from django.apps import AppConfig
 
 
@@ -6,9 +7,10 @@ class ProjectsConfig(AppConfig):
     name = "projects"
 
     def ready(self):
-        # Импортируем здесь, чтобы избежать циклических импортов
-        from .tasks import DeadlineChecker
+        if os.environ.get('RUN_MAIN'):  # Запускаем только в основном процессе
+            # Импортируем здесь, чтобы избежать циклических импортов
+            from .tasks import DeadlineChecker
 
-        # Запускаем проверку дедлайнов в отдельном потоке
-        checker = DeadlineChecker()
-        checker.start()
+            # Запускаем проверку дедлайнов в отдельном потоке
+            checker = DeadlineChecker()
+            checker.start()

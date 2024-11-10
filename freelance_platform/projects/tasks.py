@@ -15,20 +15,25 @@ class DeadlineChecker(threading.Thread):
         self._last_check = None
 
     def run(self):
-        # Проверяем сразу при запуске
-        self.check_deadlines()
+        # Настраиваем в какой час будет проверка дедлайнов
+        current_time = timezone.now()
+        checked_hour = 14
+
+        # Если при запуске сервера не проверяемый час, вручную запускаем проверку дедлайнов
+        if current_time.hour != checked_hour:
+            self.check_deadlines()
 
         while not self._stop_event.is_set():
             try:
                 current_time = timezone.now()
 
-                # Проверяем раз в день в 10 часов
-                if (current_time.hour == 10 and
+                # Проверяем раз в день в заявленный час
+                if (current_time.hour == checked_hour and
                         (self._last_check is None or
                          current_time.date() > self._last_check.date())):
                     self.check_deadlines()
 
-                time.sleep(60)
+                time.sleep(60*10)
 
             except Exception as e:
                 print(f"Ошибка при проверке дедлайнов: {e}")
@@ -50,14 +55,14 @@ class DeadlineChecker(threading.Thread):
             models.Q(deadline_notification_sent__lt=current_time.date())  # Или отправлялось в предыдущие дни
         )
 
-        # print(f"Найдено активных заявок с приближающимся дедлайном: {active_applications.count()}")
+        print(f"Найдено активных заявок с приближающимся дедлайном: {active_applications.count()}")
 
         for application in active_applications:
             days_left = (application.project.deadline - current_time.date()).days
             # print(f"Проект: '{application.project.title}', осталось дней: {days_left}")
 
             send_deadline_reminder(application)
-            # print(f'Отправлено напоминание для проекта {application.project.title} (осталось {days_left} дней)')
+            print(f'Отправлено напоминание для проекта {application.project.title} (осталось {days_left} дней)')
 
             # Обновляем дату отправки уведомления
             application.deadline_notification_sent = current_time.date()

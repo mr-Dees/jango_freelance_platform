@@ -36,24 +36,6 @@ def create_project(request):
     return render(request, 'create_project.html', {'form': form})
 
 
-def apply_for_project(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-
-    if request.method == 'POST':
-        form = ApplicationForm(request.POST)
-        if form.is_valid():
-            application = form.save(commit=False)
-            application.freelancer = request.user  # Назначаем фрилансера текущему пользователю.
-            application.project = project  # Привязываем заявку к проекту.
-            application.save()
-            return redirect('project_detail', project_id=project.id)
-
-    else:
-        form = ApplicationForm()
-
-    return render(request, 'apply_for_project.html', {'form': form})
-
-
 # Стартовая страница
 def home(request):
     return render(request, 'home.html')
@@ -159,6 +141,10 @@ def apply_for_project(request, project_id):
             application.freelancer = request.user
             application.project = project
             application.save()
+
+            # Отправляем уведомление работодателю о новой заявке
+            send_new_application_notification(application)
+
             return redirect('freelancer_dashboard')
 
     else:
@@ -184,6 +170,9 @@ def upload_report(request, application_id):
             application.status = 'submitted'
             application.save()
 
+            # Отправляем уведомление работодателю о новом отчете
+            send_new_report_notification(report)
+            
             return redirect('freelancer_dashboard')
     else:
         form = ReportForm()
