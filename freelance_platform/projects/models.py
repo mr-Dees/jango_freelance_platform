@@ -51,6 +51,7 @@ class Application(models.Model):
     price_offer = models.DecimalField(max_digits=10, decimal_places=2)
     experience_description = models.TextField()
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
+    deadline_notification_sent = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.freelancer.username} - {self.project.title}'

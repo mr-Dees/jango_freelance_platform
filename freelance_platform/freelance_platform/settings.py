@@ -16,6 +16,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOGIN_REDIRECT_URL = '/redirect/'  # Перенаправление на кастомное представление после входа
 
+# Настройки электронной почты
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'  # Используем yandex
+EMAIL_PORT = 587    # Порт для ОТПРАВКИ сообщений
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'dees-mr@yandex.ru'  # email
+EMAIL_HOST_PASSWORD = 'vtuqlnvrnkxxjayl'  # пароль - создается индивидуально для каждого приложения
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 

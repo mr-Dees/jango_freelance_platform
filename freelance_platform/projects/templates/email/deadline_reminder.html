@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Напоминание о дедлайне</title>
+</head>
+<body>
+    <h2>Здравствуйте, {{ freelancer.username }}!</h2>
+
+    <p>Напоминаем вам о приближающемся дедлайне проекта "{{ project.title }}".</p>
+
+    {% if days_left > 0 %}
+        <p><strong>До завершения проекта осталось: {{ days_left }}
+        {% if days_left == 1 %}
+            день
+        {% elif days_left < 5 %}
+            дня
+        {% else %}
+            дней
+        {% endif %}
+        </strong></p>
+    {% else %}
+        <p><strong>Дедлайн проекта наступил сегодня!</strong></p>
+    {% endif %}
+
+    <p>Дедлайн проекта: {{ project.deadline }}</p>
+    <p>Бюджет проекта: {{ project.budget }} руб.</p>
+
+    <p>Пожалуйста, убедитесь, что вы успеваете завершить работу в срок.</p>
+
+    <p>С уважением,<br>
+    Команда платформы</p>
+</body>
+</html>

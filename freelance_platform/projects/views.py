@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Project, Application, Report
 from django.shortcuts import render, redirect
 from .forms import ReportForm
+from .notifications import *
 
 
 def register(request):
@@ -232,6 +233,8 @@ def review_report(request, report_id):
             # Завершаем проект
             report.project.status = 'completed'
             report.project.save()
+            # Отправляем письмо
+            send_report_accepted_notification(report)
 
         elif action == 'reject':
             # Отклонение отчета
@@ -243,6 +246,8 @@ def review_report(request, report_id):
             # Проект остается в работе
             report.project.status = 'in_progress'
             report.project.save()
+            # Отправляем письмо
+            send_report_rejected_notification(report)
 
         return redirect('view_applications', project_id=report.project.id)
 
@@ -330,9 +335,15 @@ def application_detail(request, application_id):
             project.status = 'in_progress'
             project.save()
 
+            # Отправляем письмо
+            send_application_accepted_notification(application)
+
         elif action == 'reject':
             application.status = 'rejected'
             application.save()
+
+            # Отправляем письмо
+            send_application_rejected_notification(application)
 
         return redirect('view_applications', project_id=project.id)
 
