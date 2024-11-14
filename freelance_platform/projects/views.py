@@ -1,3 +1,4 @@
+from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from .forms import UserRegistrationForm, ReviewForm
 from django.shortcuts import get_object_or_404
@@ -14,11 +15,16 @@ def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('login')
+            user = form.save()
+            # Автоматически входим после регистрации
+            login(request, user)
+            # Перенаправляем на соответствующую страницу
+            if user.role == 'employer':
+                return redirect('employer_dashboard')
+            else:
+                return redirect('freelancer_dashboard')
     else:
         form = UserRegistrationForm()
-
     return render(request, 'register.html', {'form': form})
 
 

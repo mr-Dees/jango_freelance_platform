@@ -25,6 +25,16 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dees-mr@yandex.ru'  # email
 EMAIL_HOST_PASSWORD = 'vtuqlnvrnkxxjayl'  # пароль - создается индивидуально для каждого приложения
 
+# Языковые настройки
+LANGUAGE_CODE = 'ru'
+USE_I18N = True
+USE_L10N = True
+
+LANGUAGES = [
+    ('ru', 'Russian'),
+    ('en', 'English'),
+]
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -57,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 ROOT_URLCONF = "freelance_platform.urls"

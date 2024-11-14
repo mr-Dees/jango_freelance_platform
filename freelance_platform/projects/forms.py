@@ -9,7 +9,7 @@ from .models import Report
 
 
 class UserRegistrationForm(UserCreationForm):
-    role = forms.ChoiceField(choices=User.ROLE_CHOICES)
+    role = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
         model = User
