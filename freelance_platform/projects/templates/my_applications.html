@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои заявки{% endblock %}
+
+{% block additional_nav %}
+    <a href="{% url 'freelancer_dashboard' %}">Доступные проекты</a>
+    <a href="{% url 'my_applications' %}" class="active">Мои заявки</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Мои заявки на проекты:</h2>
+
+    <!-- Добавляем сортировку -->
+    <div class="sorting-container">
+        <span>Сортировать:</span>
+        <div class="sorting-links">
+            <a href="?sort=title" {% if request.GET.sort == 'title' %}class="active"{% endif %}>по названию</a>
+            <a href="?sort=budget" {% if request.GET.sort == 'budget' %}class="active"{% endif %}>по бюджету</a>
+            <a href="?sort=deadline" {% if request.GET.sort == 'deadline' %}class="active"{% endif %}>по срокам</a>
+            <a href="?sort=status" {% if request.GET.sort == 'status' %}class="active"{% endif %}>по статусу</a>
+            {% if request.GET.sort %}
+            <a href="?" class="reset-sort">×</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <ul>
+        {% for project in applied_projects %}
+            <li>
+                {{ project.title }} — Бюджет: {{ project.budget }} руб.
+                {% for application in applications %}
+                    {% if application.project.id == project.id %}
+                        <p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
+
+                        {% if application.status == 'accepted' %}
+                            <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
+                        {% elif application.status == 'submitted' %}
+                            <p><strong>Отчет отправлен. Ожидается оценка работодателя.</strong></p>
+                        {% elif application.status == 'completed' %}
+                            <p><strong>Проект завершен.</strong></p>
+                        {% elif application.status == 'rejected' %}
+                            <p><strong>Отчет отклонен. Требуется доработка.</strong></p>
+                            <a href="{% url 'upload_report' application.id %}">Повторно отправить отчет</a>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </li>
+        {% empty %}
+            <p>Вы еще не подали заявки ни на один проект.</p>
+        {% endfor %}
+    </ul>
+</div>
+
+<style>
+    .sorting-links {
+        margin: 20px 0;
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+    }
+    .sorting-links a {
+        text-decoration: none;
+        color: #4CAF50;
+        margin: 0 5px;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+    .sorting-links a:hover {
+        background-color: #4CAF50;
+        color: white;
+    }
+</style>
+{% endblock %}

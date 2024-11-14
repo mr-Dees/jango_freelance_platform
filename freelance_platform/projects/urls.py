@@ -1,7 +1,8 @@
+from django.contrib.auth.views import LogoutView
 from django.urls import path
 from .views import home, freelancer_dashboard, employer_dashboard, register, redirect_after_login, apply_for_project, \
     upload_report, view_applications, cancel_application, application_detail, cancel_project, project_detail, \
-    retry_application, delete_application, complete_project, review_report, index
+    retry_application, delete_application, complete_project, review_report, index, my_applications
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -32,4 +33,6 @@ urlpatterns = [
     path('review_report/<int:report_id>/', review_report, name='review_report'),
     # Завершение проекта (для работодателей)
     path('complete_project/<int:application_id>/', complete_project, name='complete_project'),
+    path('my-applications/', my_applications, name='my_applications'),
+    path('logout/', LogoutView.as_view(next_page='index'), name='logout'),
 ]

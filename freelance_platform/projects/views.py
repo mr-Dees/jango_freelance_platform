@@ -272,6 +272,33 @@ def view_applications(request, project_id):
     return render(request, 'view_applications.html', {'project': project, 'applications': applications})
 
 
+def my_applications(request):
+    # Получаем параметр сортировки
+    sort_param = request.GET.get('sort')
+
+    # Получаем все заявки текущего фрилансера
+    applications = Application.objects.filter(freelancer=request.user)
+
+    # Получаем все проекты, на которые поданы заявки
+    applied_projects = Project.objects.filter(application__in=applications)
+
+    # Применяем сортировку
+    if sort_param:
+        if sort_param == 'title':
+            applied_projects = applied_projects.order_by('title')
+        elif sort_param == 'budget':
+            applied_projects = applied_projects.order_by('budget')
+        elif sort_param == 'deadline':
+            applied_projects = applied_projects.order_by('deadline')
+        elif sort_param == 'status':
+            applied_projects = applied_projects.order_by('application__status')
+
+    return render(request, 'my_applications.html', {
+        'applications': applications,
+        'applied_projects': applied_projects,
+    })
+
+
 @login_required
 def submit_review(request, project_id):
     project = get_object_or_404(Project, id=project_id)

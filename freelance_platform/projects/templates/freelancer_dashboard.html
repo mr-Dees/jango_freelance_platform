@@ -1,47 +1,56 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Личный кабинет фрилансера</title>
-    <style>
-        .sorting-links {
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-        }
-        .sorting-links a {
-            text-decoration: none;
-            color: #4CAF50;
-            margin: 0 5px;
-            padding: 5px 10px;
-            border-radius: 3px;
-        }
-        .sorting-links a:hover {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .active-sort {
-            background-color: #4CAF50;
-            color: white !important;
-        }
-    </style>
-</head>
-<body>
-    <h1>Добро пожаловать, {{ user.username }}!</h1>
+{% extends 'base.html' %}
 
+{% block title %}Личный кабинет фрилансера{% endblock %}
+
+{% block additional_nav %}
+    <a href="{% url 'freelancer_dashboard' %}" class="active">Доступные проекты</a>
+    <a href="{% url 'my_applications' %}">Мои заявки</a>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+.sorting-links {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+.sorting-links a {
+    text-decoration: none;
+    color: #4CAF50;
+    margin: 0 5px;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+.sorting-links a:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+.active-sort {
+    background-color: #4CAF50;
+    color: white !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
     <h2>Доступные проекты:</h2>
-    <div class="sorting-links">
-        Сортировать по:
-        <a href="?sort=title">Названию</a> |
-        <a href="?sort=budget">Бюджету</a> |
-        <a href="?sort=deadline">Срокам</a> |
-        <a href="?sort=status">Статусу</a>
-        {% if request.GET.sort %}
-            | <a href="?">Сбросить сортировку</a>
-        {% endif %}
+
+    <!-- Добавляем сортировку -->
+    <div class="sorting-container">
+        <span>Сортировать:</span>
+        <div class="sorting-links">
+            <a href="?sort=title" {% if request.GET.sort == 'title' %}class="active"{% endif %}>по названию</a>
+            <a href="?sort=budget" {% if request.GET.sort == 'budget' %}class="active"{% endif %}>по бюджету</a>
+            <a href="?sort=deadline" {% if request.GET.sort == 'deadline' %}class="active"{% endif %}>по срокам</a>
+            <a href="?sort=status" {% if request.GET.sort == 'status' %}class="active"{% endif %}>по статусу</a>
+            {% if request.GET.sort %}
+            <a href="?" class="reset-sort">×</a>
+            {% endif %}
+        </div>
     </div>
+
     <ul>
         {% for project in available_projects %}
             <li>
@@ -52,86 +61,25 @@
             <p>Нет доступных проектов.</p>
         {% endfor %}
     </ul>
+</div>
 
-    <h2>Проекты, на которые вы откликнулись:</h2>
-    <div class="sorting-links">
-        Сортировать по:
-        <a href="?applied_sort=title">Названию</a> |
-        <a href="?applied_sort=budget">Бюджету</a> |
-        <a href="?applied_sort=deadline">Срокам</a> |
-        <a href="?applied_sort=status">Статусу</a>
-        {% if request.GET.applied_sort %}
-            | <a href="?">Сбросить сортировку</a>
-        {% endif %}
-    </div>
-    <ul>
-        {% for project in applied_projects %}
-            <li>
-                {{ project.title }} — Бюджет: {{ project.budget }} руб.
-                {% for application in applications %}
-                    {% if application.project.id == project.id %}
-                        <p><strong>Статус вашей заявки:</strong> {{ application.get_status_display }}</p>
-
-                        {% if application.status == 'accepted' %}
-                            <!-- Если заявка принята -->
-                            <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
-
-                        {% elif application.status == 'submitted' %}
-                            <p><strong>Отчет отправлен. Ожидается оценка работодателя.</strong></p>
-
-                        {% elif application.status == 'report_rejected' %}
-                            <p><strong>Отчет отклонен. Требуется доработка.</strong></p>
-                            <a href="{% url 'upload_report' application.id %}">Отправить исправленный отчет</a>
-
-                        {% elif application.status == 'report_accepted' %}
-                            <p><strong>Отчет принят. Проект успешно завершен.</strong></p>
-
-                        {% elif application.status == 'rejected' %}
-                            {% if project.status == 'closed' %}
-                                <p><strong>Заявка отклонена. Проект закрыт.</strong></p>
-                            {% elif project.status == 'in_progress' %}
-                                <p><strong>Заявка отклонена. Проект находится в работе у другого фрилансера.</strong></p>
-                            {% else %}
-                                <p><strong>Заявка отклонена.</strong></p>
-                                <button onclick="openModal('{{ application.id }}')">Подать повторную заявку</button>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            </li>
-        {% empty %}
-            <p>Вы еще не подали заявки ни на один проект.</p>
-        {% endfor %}
-    </ul>
-
-    <!-- Модальное окно для ввода новых условий -->
-    <div id="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
-        <h3>Повторная заявка</h3>
-        <form method="post" id="retryForm">
-            {% csrf_token %}
-            <input type="hidden" name="application_id" id="applicationId">
-
-            <label for="price_offer">Предложенная цена:</label><br>
-            <input type="number" name="price_offer" step="0.01" required><br><br>
-
-            <label for="experience_description">Описание опыта:</label><br>
-            <textarea name="experience_description" required></textarea><br><br>
-
-            <button type="submit">Отправить</button>
-            <button type="button" onclick="closeModal()">Отмена</button>
-        </form>
-    </div>
-
-    <script>
-        function openModal(applicationId) {
-            document.getElementById('modal').style.display = 'block';
-            document.getElementById('applicationId').value = applicationId;
-            document.getElementById('retryForm').action = `/retry_application/${applicationId}/`;
-        }
-
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
-    </script>
-</body>
-</html>
+<style>
+    .sorting-links {
+        margin: 20px 0;
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+    }
+    .sorting-links a {
+        text-decoration: none;
+        color: #4CAF50;
+        margin: 0 5px;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+    .sorting-links a:hover {
+        background-color: #4CAF50;
+        color: white;
+    }
+</style>
+{% endblock %}

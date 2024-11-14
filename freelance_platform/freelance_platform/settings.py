@@ -15,6 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOGIN_REDIRECT_URL = '/redirect/'  # Перенаправление на кастомное представление после входа
+LOGOUT_REDIRECT_URL = 'index'
 
 # Настройки электронной почты
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

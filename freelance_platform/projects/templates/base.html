@@ -79,6 +79,58 @@
         .nav a:hover {
             background-color: #357a38;
         }
+        .sorting-container {
+            color: #666;
+            font-size: 14px;
+            margin: 15px 0;
+        }
+        .sorting-container span {
+            color: #999;
+        }
+        .sorting-links {
+            display: inline;
+        }
+        .sorting-links a {
+            color: #666;
+            text-decoration: none;
+            margin: 0 8px;
+            padding-bottom: 2px;
+        }
+        .sorting-links a:hover {
+            color: #4CAF50;
+            border-bottom: 1px solid #4CAF50;
+        }
+        .sorting-links a.active {
+            color: #4CAF50;
+            border-bottom: 1px solid #4CAF50;
+        }
+        .reset-sort {
+            color: #999;
+            text-decoration: none;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+        .reset-sort:hover {
+            color: #666;
+        }
+        button.auth-button {
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+        padding: 10px 20px;
+        background-color: white;
+        color: #4CAF50;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-left: 10px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+
+    button.auth-button:hover {
+        background-color: #e8f5e9;
+    }
     </style>
     {% block extra_styles %}{% endblock %}
 </head>
@@ -88,9 +140,23 @@
         <div class="auth-buttons">
             {% if user.is_authenticated %}
                 {% if user.is_employer %}
-                    <a href="{% url 'employer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
+                    {% if request.resolver_match.url_name in 'employer_dashboard,view_applications,view_project,application_detail' %}
+                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="auth-button">Выйти</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'employer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
+                    {% endif %}
                 {% else %}
-                    <a href="{% url 'freelancer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
+                    {% if request.resolver_match.url_name in 'freelancer_dashboard,my_applications' %}
+                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="auth-button">Выйти</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'freelancer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
+                    {% endif %}
                 {% endif %}
             {% else %}
                 <a href="{% url 'login' %}" class="auth-button">Войти</a>
