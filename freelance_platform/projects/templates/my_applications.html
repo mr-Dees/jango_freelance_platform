@@ -9,66 +9,138 @@
 
 {% block content %}
 <div class="container">
-    <h2>Мои заявки на проекты:</h2>
-
-    <!-- Добавляем сортировку -->
     <div class="sorting-container">
         <span>Сортировать:</span>
         <div class="sorting-links">
             <a href="?sort=title" {% if request.GET.sort == 'title' %}class="active"{% endif %}>по названию</a>
             <a href="?sort=budget" {% if request.GET.sort == 'budget' %}class="active"{% endif %}>по бюджету</a>
-            <a href="?sort=deadline" {% if request.GET.sort == 'deadline' %}class="active"{% endif %}>по срокам</a>
             <a href="?sort=status" {% if request.GET.sort == 'status' %}class="active"{% endif %}>по статусу</a>
             {% if request.GET.sort %}
-            <a href="?" class="reset-sort">×</a>
+                <a href="?" class="reset-sort">×</a>
             {% endif %}
         </div>
     </div>
 
-    <ul>
+    <div class="applications-grid">
         {% for project in applied_projects %}
-            <li>
-                {{ project.title }} — Бюджет: {{ project.budget }} руб.
-                {% for application in applications %}
-                    {% if application.project.id == project.id %}
-                        <p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
-
-                        {% if application.status == 'accepted' %}
-                            <a href="{% url 'upload_report' application.id %}">Отправить отчет</a>
-                        {% elif application.status == 'submitted' %}
-                            <p><strong>Отчет отправлен. Ожидается оценка работодателя.</strong></p>
-                        {% elif application.status == 'completed' %}
-                            <p><strong>Проект завершен.</strong></p>
-                        {% elif application.status == 'rejected' %}
-                            <p><strong>Отчет отклонен. Требуется доработка.</strong></p>
-                            <a href="{% url 'upload_report' application.id %}">Повторно отправить отчет</a>
+            <div class="application-card">
+                <div class="application-header">
+                    <h3>{{ project.title }}</h3>
+                    {% for application in applications %}
+                        {% if application.project.id == project.id %}
+                            <span class="status-badge">{{ application.get_status_display }}</span>
                         {% endif %}
-                    {% endif %}
-                {% endfor %}
-            </li>
+                    {% endfor %}
+                </div>
+
+                <div class="application-details">
+                    <p><strong>Бюджет:</strong> {{ project.budget }} руб.</p>
+                    {% for application in applications %}
+                        {% if application.project.id == project.id %}
+                            {% if application.status == 'accepted' %}
+                                <div class="application-actions">
+                                    <a href="{% url 'upload_report' application.id %}" class="button">Отправить отчет</a>
+                                </div>
+                            {% elif application.status == 'submitted' %}
+                                <p class="status-message">Отчет отправлен. Ожидается оценка работодателя.</p>
+                            {% elif application.status == 'completed' %}
+                                <p class="status-message completed">Проект завершен</p>
+                            {% elif application.status == 'rejected' %}
+                                <div class="application-actions">
+                                    <p class="status-message rejected">Отчет отклонен. Требуется доработка.</p>
+                                    <a href="{% url 'upload_report' application.id %}" class="button">Повторно отправить отчет</a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
         {% empty %}
-            <p>Вы еще не подали заявки ни на один проект.</p>
+            <p class="no-applications">Вы еще не подали заявки ни на один проект.</p>
         {% endfor %}
-    </ul>
+    </div>
 </div>
 
 <style>
-    .sorting-links {
-        margin: 20px 0;
-        padding: 10px;
-        background-color: #f5f5f5;
-        border-radius: 5px;
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
     }
-    .sorting-links a {
-        text-decoration: none;
-        color: #4CAF50;
-        margin: 0 5px;
+
+    .applications-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .application-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .application-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+    }
+
+    .status-badge {
+        background: #4CAF50;
+        color: white;
         padding: 5px 10px;
-        border-radius: 3px;
+        border-radius: 15px;
+        font-size: 14px;
     }
-    .sorting-links a:hover {
+
+    .application-details {
+        margin-bottom: 20px;
+    }
+
+    .status-message {
+        color: #666;
+        margin: 10px 0;
+    }
+
+    .status-message.completed {
+        color: #4CAF50;
+    }
+
+    .status-message.rejected {
+        color: #f44336;
+    }
+
+    .application-actions {
+        margin-top: 15px;
+    }
+
+    .button {
+        display: inline-block;
+        padding: 8px 15px;
         background-color: #4CAF50;
         color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+
+    .button:hover {
+        background-color: #45a049;
+    }
+
+    .no-applications {
+        text-align: center;
+        color: #666;
+        grid-column: 1 / -1;
+        padding: 40px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 </style>
 {% endblock %}

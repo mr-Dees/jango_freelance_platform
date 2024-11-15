@@ -131,38 +131,124 @@
     button.auth-button:hover {
         background-color: #e8f5e9;
     }
+    .messages-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+
+    .message {
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 200px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .message.success {
+        background-color: #4CAF50;
+    }
+
+    .message.error {
+        background-color: #f44336;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0 0 0 10px;
+    }
+    .notification-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+
+    .notification {
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px 25px;
+        margin-top: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        animation: slideInBottom 0.5s ease-out;
+    }
+
+    .notification-close {
+        margin-left: 15px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    @keyframes slideInBottom {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
     </style>
     {% block extra_styles %}{% endblock %}
 </head>
 <body>
+    {% if messages %}
+    <div class="notification-container">
+        {% for message in messages %}
+            <div class="notification {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+                <span class="notification-close" onclick="this.parentElement.remove()">&times;</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="header">
         <a href="{% url 'index' %}" class="logo">Фриланс платформа</a>
-        <div class="auth-buttons">
-            {% if user.is_authenticated %}
-                {% if user.is_employer %}
-                    {% if request.resolver_match.url_name in 'employer_dashboard,view_applications,view_project,application_detail' %}
+        {% if request.path != '/login/' and request.path != '/register/' %}
+            <div class="auth-buttons">
+                {% if user.is_authenticated %}
+                    {% if request.path == '/' %}
+                        {% if user.role == 'employer' %}
+                            <a href="{% url 'my_projects' %}" class="dashboard-button">Личный кабинет</a>
+                        {% else %}
+                            <a href="{% url 'my_applications' %}" class="dashboard-button">Личный кабинет</a>
+                        {% endif %}
+                    {% else %}
                         <form method="post" action="{% url 'logout' %}" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="auth-button">Выйти</button>
                         </form>
-                    {% else %}
-                        <a href="{% url 'employer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
                     {% endif %}
                 {% else %}
-                    {% if request.resolver_match.url_name in 'freelancer_dashboard,my_applications' %}
-                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="auth-button">Выйти</button>
-                        </form>
-                    {% else %}
-                        <a href="{% url 'freelancer_dashboard' %}" class="dashboard-button">Личный кабинет</a>
-                    {% endif %}
+                    <a href="{% url 'login' %}" class="auth-button">Войти</a>
+                    <a href="{% url 'register' %}" class="auth-button">Зарегистрироваться</a>
                 {% endif %}
-            {% else %}
-                <a href="{% url 'login' %}" class="auth-button">Войти</a>
-                <a href="{% url 'register' %}" class="auth-button">Зарегистрироваться</a>
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
     </div>
 
     <div class="nav">
@@ -170,6 +256,21 @@
         <a href="#contact">Контакты</a>
         {% block additional_nav %}{% endblock %}
     </div>
+
+    <script>
+        // Автоматически скрывать сообщения через 5 секунд
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifications = document.getElementsByClassName('notification');
+            for(let notification of notifications) {
+                setTimeout(() => {
+                    notification.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 5000);
+            }
+        });
+    </script>
 
     {% block content %}{% endblock %}
 </body>

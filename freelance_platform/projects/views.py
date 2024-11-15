@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from .forms import UserRegistrationForm, ReviewForm
@@ -28,20 +29,6 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
-def create_project(request):
-    if request.method == 'POST':
-        form = ProjectCreationForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.employer = request.user  # Назначаем работодателя текущему пользователю.
-            project.save()
-            return redirect('project_list')
-    else:
-        form = ProjectCreationForm()
-
-    return render(request, 'create_project.html', {'form': form})
-
-
 def index(request):
     return render(request, 'index.html')
 
@@ -57,7 +44,7 @@ def redirect_after_login(request):
     if user.role == 'freelancer':
         return redirect('freelancer_dashboard')
     elif user.role == 'employer':
-        return redirect('employer_dashboard')
+        return redirect('my_projects')
     else:
         return redirect('home')  # На случай, если роль не определена
 
@@ -86,7 +73,8 @@ def employer_dashboard(request):
             project = form.save(commit=False)
             project.employer = request.user
             project.save()
-            return redirect('employer_dashboard')
+            messages.success(request, 'Проект успешно создан!')
+            return redirect('my_projects')
     else:
         form = ProjectCreationForm()
 
@@ -278,6 +266,27 @@ def view_applications(request, project_id):
     return render(request, 'view_applications.html', {'project': project, 'applications': applications})
 
 
+@login_required
+def my_projects(request):
+    sort_param = request.GET.get('sort')
+    projects = Project.objects.filter(employer=request.user)
+
+    if sort_param:
+        if sort_param == 'title':
+            projects = projects.order_by('title')
+        elif sort_param == 'budget':
+            projects = projects.order_by('budget')
+        elif sort_param == 'deadline':
+            projects = projects.order_by('deadline')
+        elif sort_param == 'status':
+            projects = projects.order_by('status')
+
+    return render(request, 'my_projects.html', {
+        'projects': projects
+    })
+
+
+@login_required
 def my_applications(request):
     # Получаем параметр сортировки
     sort_param = request.GET.get('sort')

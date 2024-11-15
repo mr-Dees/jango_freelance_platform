@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %}Доступные проекты{% endblock %}
+{% block title %}Мои проекты{% endblock %}
 
 {% block additional_nav %}
-    <a href="{% url 'freelancer_dashboard' %}" class="active">Доступные проекты</a>
-    <a href="{% url 'my_applications' %}">Мои заявки</a>
+    <a href="{% url 'my_projects' %}" class="active">Мои проекты</a>
+    <a href="{% url 'employer_dashboard' %}" class="active">Разместить проект</a>
 {% endblock %}
 
 {% block content %}
@@ -15,6 +15,7 @@
             <a href="?sort=title" {% if request.GET.sort == 'title' %}class="active"{% endif %}>по названию</a>
             <a href="?sort=budget" {% if request.GET.sort == 'budget' %}class="active"{% endif %}>по бюджету</a>
             <a href="?sort=deadline" {% if request.GET.sort == 'deadline' %}class="active"{% endif %}>по срокам</a>
+            <a href="?sort=status" {% if request.GET.sort == 'status' %}class="active"{% endif %}>по статусу</a>
             {% if request.GET.sort %}
                 <a href="?" class="reset-sort">×</a>
             {% endif %}
@@ -22,12 +23,13 @@
     </div>
 
     <div class="projects-grid">
-        {% for project in available_projects %}
+        {% for project in projects %}
             <div class="project-card">
                 <div class="project-header">
                     <h3>{{ project.title }}</h3>
+                    <span class="status-badge">{{ project.get_status_display }}</span>
                 </div>
-
+                
                 <div class="project-details">
                     <p><strong>Бюджет:</strong> {{ project.budget }} руб.</p>
                     <p><strong>Дедлайн:</strong> {{ project.deadline }}</p>
@@ -35,11 +37,21 @@
                 </div>
 
                 <div class="project-actions">
-                    <a href="{% url 'apply_for_project' project.id %}" class="button">Подать заявку</a>
+                    {% if project.status == 'open' %}
+                        <a href="{% url 'view_applications' project.id %}" class="button">
+                            Заявки 
+                            {% with application_count=project.application_set.count %}
+                                ({{ application_count }})
+                            {% endwith %}
+                        </a>
+                    {% elif project.status == 'in_progress' %}
+                        <a href="{% url 'view_applications' project.id %}" class="button">Просмотр выполнения</a>
+                    {% endif %}
+                    <a href="{% url 'project_detail' project.id %}" class="button secondary">Подробнее</a>
                 </div>
             </div>
         {% empty %}
-            <p class="no-projects">Нет доступных проектов.</p>
+            <p class="no-projects">У вас пока нет созданных проектов.</p>
         {% endfor %}
     </div>
 </div>
@@ -66,12 +78,23 @@
     }
 
     .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
         margin-bottom: 15px;
     }
 
     .project-header h3 {
         margin: 0;
         color: #333;
+    }
+
+    .status-badge {
+        background: #4CAF50;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
     }
 
     .project-details {
@@ -92,6 +115,7 @@
     .project-actions {
         display: flex;
         gap: 10px;
+        flex-wrap: wrap;
     }
 
     .button {
@@ -107,6 +131,14 @@
 
     .button:hover {
         background-color: #45a049;
+    }
+
+    .button.secondary {
+        background-color: #666;
+    }
+
+    .button.secondary:hover {
+        background-color: #555;
     }
 
     .no-projects {
