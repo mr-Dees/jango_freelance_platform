@@ -38,4 +38,13 @@ class ReviewForm(forms.ModelForm):
 class ReportForm(forms.ModelForm):
     class Meta:
         model = Report
-        fields = ['report_file']  # Поле для загрузки файла отчета
+        fields = ['report_text', 'report_file']
+        widgets = {
+            'report_text': forms.Textarea(attrs={
+                'placeholder': 'Опишите выполненную работу...',
+                'class': 'form-control'
+            }),
+            'report_file': forms.FileInput(attrs={
+                'class': 'form-control'
+            })
+        }

@@ -4,6 +4,28 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 
+def send_contact_form_notification(name, email, message):
+    """Отправка уведомления из формы обратной связи"""
+    context = {
+        'name': name,
+        'email': email,
+        'message': message
+    }
+    try:
+        message = render_to_string('email/contact_form.html', context)
+        subject = f'Новое сообщение от {name}'
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [settings.ADMIN_EMAIL],
+            html_message=message,
+        )
+        return True
+    except Exception as e:
+        return False
+
+
 def send_application_accepted_notification(application):
     """Уведомление фрилансеру о принятии заявки"""
     subject = f'Ваша заявка на проект "{application.project.title}" принята'

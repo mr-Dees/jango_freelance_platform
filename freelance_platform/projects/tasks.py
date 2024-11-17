@@ -17,7 +17,8 @@ class DeadlineChecker(threading.Thread):
     def run(self):
         # Настраиваем в какой час будет проверка дедлайнов
         current_time = timezone.now()
-        checked_hour = 14
+        checked_hour = 8    # 17
+        print(current_time)
 
         # Если при запуске сервера не проверяемый час, вручную запускаем проверку дедлайнов
         if current_time.hour != checked_hour:

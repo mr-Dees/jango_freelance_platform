@@ -252,8 +252,8 @@
     </div>
 
     <div class="nav">
-        <a href="#about">О платформе</a>
-        <a href="#contact">Контакты</a>
+        <a href="{% url 'about' %}">О платформе</a>
+        <a href="{% url 'contacts' %}">Контакты</a>
         {% block additional_nav %}{% endblock %}
     </div>
 

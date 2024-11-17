@@ -1,71 +1,234 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заявки на проект</title>
-    <style>
-        .sorting-links {
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-        }
-        .sorting-links a {
-            text-decoration: none;
-            color: #4CAF50;
-            margin: 0 5px;
-            padding: 5px 10px;
-            border-radius: 3px;
-        }
-        .sorting-links a:hover {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .active-sort {
-            background-color: #4CAF50;
-            color: white !important;
-        }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<h1>Заявки на проект: {{ project.title }}</h1>
+{% block title %}Заявки на проект{% endblock %}
 
-<ul>
-    {% for application in applications %}
-        <li>
-            Фрилансер: {{ application.freelancer.username }}<br>
-            Описание опыта: {{ application.experience_description|truncatewords:10 }}<br>
-            Предложенная цена: {{ application.price_offer }} руб.<br>
+{% block additional_nav %}
+    <a href="{% url 'my_projects' %}">Мои проекты</a>
+    <a href="{% url 'employer_dashboard' %}">Разместить проект</a>
+{% endblock %}
 
-            <!-- Статус заявки -->
-            <p><strong>Статус заявки:</strong> {{ application.get_status_display }}</p>
+{% block content %}
+<div class="container">
+    <div class="project-info">
+        <h2 class="section-title">Заявки на проект: {{ project.title }}</h2>
+    </div>
 
-            {% if application.status == 'accepted' %}
-                <!-- Отображаем отчет -->
-                {% if application.project.report_set.exists %}
-                    {% for report in application.project.report_set.all %}
-                        <p><strong>Статус отчета:</strong> {{ report.get_status_display }}</p>
-                        <a href="{{ report.report_file.url }}" download>Скачать отчет</a><br>
-                        {% if report.status != 'accepted' %}
-                            <!-- Кнопки для принятия или отклонения отчета -->
-                            <form method="post" action="{% url 'review_report' report.id %}">
-                                {% csrf_token %}
-                                <button type="submit" name="action" value="accept">Принять отчет</button>
-                                <button type="submit" name="action" value="reject">Отклонить отчет (требуется доработка)</button>
-                            </form>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <p>Отчет пока не загружен.</p>
-                {% endif %}
+    <div class="sorting-container">
+        <span>Сортировать:</span>
+        <div class="sorting-links">
+            <a href="?sort=freelancer" {% if request.GET.sort == 'freelancer' %}class="active"{% endif %}>по имени</a>
+            <a href="?sort=price" {% if request.GET.sort == 'price' %}class="active"{% endif %}>по цене</a>
+            <a href="?sort=status" {% if request.GET.sort == 'status' %}class="active"{% endif %}>по статусу</a>
+            {% if request.GET.sort %}
+                <a href="?" class="reset-sort">×</a>
             {% endif %}
-        </li>
-    {% endfor %}
-</ul>
+        </div>
+    </div>
 
-<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет работодателя</a>
+    <div class="applications-grid">
+        {% for application in applications %}
+            <div class="application-card">
+                <div class="application-header">
+                    <h3>{{ application.freelancer.username }}</h3>
+                    <span class="status-badge">{{ application.get_status_display }}</span>
+                </div>
 
-</body>
-</html>
+                <div class="application-details">
+                    <p><strong>Описание опыта:</strong> {{ application.experience_description|truncatewords:30 }}</p>
+                    <p><strong>Предложенная цена:</strong> {{ application.price_offer }} руб.</p>
+
+                    {% if application.status == 'submitted' %}
+                        <div class="report-section">
+                            <h4>Отчет:</h4>
+                            {% if application.project.report_set.exists %}
+                                {% for report in application.project.report_set.all %}
+                                    <div class="report-actions">
+                                        {% if report.report_file %}
+                                            <a href="{{ report.report_file.url }}" class="button" download>Скачать файл отчета</a>
+                                        {% endif %}
+                                        <a href="{% url 'review_report' report.id %}" class="button secondary">Оценить отчет</a>
+                                    </div>
+                                    {% if report.report_text %}
+                                        <div class="report-text">
+                                            <p><strong>Текст отчета:</strong></p>
+                                            <p>{{ report.report_text }}</p>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p class="no-report">Отчет пока не загружен.</p>
+                            {% endif %}
+                        </div>
+                    {% elif application.status == 'completed' %}
+                        <div class="status-message completed">Проект завершен</div>
+                    {% endif %}
+                </div>
+
+                <div class="application-actions">
+                    <a href="{% url 'application_detail' application.id %}" class="button">Подробнее</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="navigation-buttons">
+        <button onclick="history.back()" class="button back">Назад</button>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section-title {
+        color: #4CAF50;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .applications-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .application-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .application-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .application-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .status-badge {
+        background: #4CAF50;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+    }
+
+    .application-details {
+        margin-bottom: 20px;
+    }
+
+    .application-details p {
+        margin: 10px 0;
+        color: #666;
+    }
+
+    .report-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .report-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .button {
+        display: inline-block;
+        padding: 8px 15px;
+        background-color: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+
+    .button:hover {
+        background-color: #45a049;
+    }
+
+    .button.secondary {
+        background-color: #666;
+    }
+
+    .button.secondary:hover {
+        background-color: #555;
+    }
+
+    .no-report {
+        color: #666;
+        font-style: italic;
+    }
+
+    .status-message {
+        padding: 10px;
+        border-radius: 4px;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .status-message.completed {
+        background-color: #e8f5e9;
+        color: #4CAF50;
+    }
+    .report-text {
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+    }
+
+    .report-text p {
+        margin: 5px 0;
+    }
+
+    .no-applications-message {
+        color: #666;
+        font-style: italic;
+        background-color: #f5f5f5;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .button.back {
+        background-color: #666;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+
+    .button.back:hover {
+        background-color: #555;
+    }
+
+    @media (max-width: 600px) {
+        .navigation-buttons {
+            padding: 20px 10px;
+        }
+    }
+</style>
+{% endblock %}

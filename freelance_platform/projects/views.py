@@ -33,7 +33,27 @@ def index(request):
     return render(request, 'index.html')
 
 
-# Cтраница входа/регистрации
+def about(request):
+    return render(request, 'about.html')
+
+
+def contacts(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+
+        if send_contact_form_notification(name, email, message):
+            messages.success(request, 'Ваше сообщение успешно отправлено!')
+        else:
+            messages.error(request, 'Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.')
+
+        return redirect('contacts')
+
+    return render(request, 'contacts.html')
+
+
+# Для внештатной ситуации
 def home(request):
     return render(request, 'home.html')
 
@@ -158,24 +178,31 @@ def upload_report(request, application_id):
     if request.method == 'POST':
         form = ReportForm(request.POST, request.FILES)
         if form.is_valid():
+            # Удаляем предыдущий отчет, если он существует
+            Report.objects.filter(
+                project=application.project,
+                freelancer=request.user
+            ).delete()
+
+            # Создаем новый отчет
             report = form.save(commit=False)
-            report.application = application
-            report.project = application.project  # Связываем отчет с проектом
-            report.freelancer = application.freelancer  # Связываем отчет с фрилансером
+            report.freelancer = request.user
+            report.project = application.project
             report.save()
 
-            # Обновляем статус заявки на "submitted"
+            # Обновляем статус заявки
             application.status = 'submitted'
             application.save()
 
-            # Отправляем уведомление работодателю о новом отчете
-            send_new_report_notification(report)
-
-            return redirect('freelancer_dashboard')
+            messages.success(request, 'Отчет успешно отправлен!')
+            return redirect('my_applications')
     else:
         form = ReportForm()
 
-    return render(request, 'upload_report.html', {'form': form})
+    return render(request, 'upload_report.html', {
+        'form': form,
+        'application': application
+    })
 
 
 @login_required
@@ -248,6 +275,16 @@ def view_applications(request, project_id):
 
     # Получаем все заявки на этот проект
     applications = Application.objects.filter(project=project)
+
+    # Добавляем сортировку
+    sort_param = request.GET.get('sort')
+    if sort_param:
+        if sort_param == 'freelancer':
+            applications = applications.order_by('freelancer__username')
+        elif sort_param == 'price':
+            applications = applications.order_by('price_offer')
+        elif sort_param == 'status':
+            applications = applications.order_by('status')
 
     if request.method == 'POST':
         application_id = request.POST.get('application_id')
@@ -358,7 +395,7 @@ def application_detail(request, application_id):
             # Отклоняем все остальные заявки и помечаем для них проект как закрытый
             other_applications = Application.objects.filter(project=project).exclude(id=application_id)
             for other_app in other_applications:
-                other_app.status = 'rejected'
+                other_app.status = 'rejected_final'
                 other_app.project.status = 'closed'  # Для отклоненных заявок проект помечается как закрытый
                 other_app.save()
 
@@ -397,7 +434,7 @@ def cancel_project(request, project_id):
         # Удаляем проект только если он еще не завершен
         if project.status != 'completed':
             project.delete()
-            return redirect('employer_dashboard')
+            return redirect('my_projects')
 
     return render(request, 'cancel_project.html', {'project': project})
 
@@ -408,27 +445,40 @@ def project_detail(request, project_id):
     applications = project.application_set.all()
 
     # Проверяем, есть ли принятая заявка
-    accepted_application = applications.filter(status='accepted').first()
+    accepted_application = applications.filter(status__in=['accepted', 'report_accepted']).first()
 
     # Проверяем, был ли отправлен отчет
-    submitted_application = applications.filter(status='submitted').first()
+    submitted_application = applications.filter(status__in=['submitted', 'report_rejected']).first()
 
     if submitted_application:
         # Если отчет отправлен, показываем информацию о фрилансере и статусе отчета
+        report = Report.objects.filter(
+            project=project,
+            freelancer=submitted_application.freelancer
+        ).first()
+
         context = {
             'project': project,
             'freelancer': submitted_application.freelancer,
+            'application': submitted_application,
             'application_status': submitted_application.get_status_display(),
-            'report': submitted_application.project.report_set.first(),  # Получаем первый отчет
+            'report': report,
         }
         return render(request, 'project_assigned.html', context)
 
     elif accepted_application:
         # Если есть принятая заявка, но отчет еще не отправлен
+        report = Report.objects.filter(
+            project=project,
+            freelancer=accepted_application.freelancer
+        ).first()
+
         context = {
             'project': project,
             'freelancer': accepted_application.freelancer,
+            'application': accepted_application,
             'application_status': accepted_application.get_status_display(),
+            'report': report,
         }
         return render(request, 'project_assigned.html', context)
 
@@ -460,6 +510,16 @@ def delete_application(request, application_id):
 
 @login_required
 def retry_application(request, application_id):
+    old_application = get_object_or_404(Application, id=application_id)
+
+    # Проверяем, не выбран ли уже исполнитель
+    if Application.objects.filter(
+            project=old_application.project,
+            status='accepted'
+    ).exists():
+        messages.error(request, 'Невозможно подать заявку. Проект уже имеет исполнителя.')
+        return redirect('freelancer_dashboard')
+
     if request.method == 'POST':
         # Получаем существующую заявку
         application = get_object_or_404(Application, id=application_id)
@@ -469,6 +529,9 @@ def retry_application(request, application_id):
         application.experience_description = request.POST.get('experience_description')
         application.status = 'pending'  # Меняем статус обратно на "на рассмотрении"
         application.save()
+
+        # Отправляем уведомление работодателю о новой заявке
+        send_new_application_notification(application)
 
         return redirect('freelancer_dashboard')
 

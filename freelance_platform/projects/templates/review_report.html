@@ -1,28 +1,200 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Просмотр отчета</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<h1>Отчет по проекту: {{ report.project.title }}</h1>
+{% block title %}Оценка отчета{% endblock %}
 
-<p><strong>Фрилансер:</strong> {{ report.freelancer.username }}</p>
-<p><strong>Дата отправки:</strong> {{ report.submission_date }}</p>
+{% block additional_nav %}
+    <a href="{% url 'my_projects' %}">Мои проекты</a>
+    <a href="{% url 'employer_dashboard' %}">Разместить проект</a>
+{% endblock %}
 
-<!-- Ссылка на скачивание отчета -->
-<a href="{{ report.report_file.url }}" download>Скачать отчет</a>
+{% block content %}
+<div class="container">
+    <div class="report-container">
+        <h2 class="report-title">Оценка отчета по проекту "{{ report.project.title }}"</h2>
 
-<!-- Кнопки для принятия или отклонения отчета -->
-<form method="post" action="{% url 'review_report' report.id %}">
-    {% csrf_token %}
-    <button type="submit" name="action" value="accept">Принять отчет</button>
-    <button type="submit" name="action" value="reject">Отклонить отчет</button>
-</form>
+        <div class="report-info">
+            <div class="info-group">
+                <label>Фрилансер:</label>
+                <p>{{ report.freelancer.username }}</p>
+            </div>
 
-<a href="{% url 'employer_dashboard' %}">Вернуться в личный кабинет</a>
+            <div class="info-group">
+                <label>Текст отчета:</label>
+                <p>{{ report.report_text }}</p>
+            </div>
 
-</body>
-</html>
+            {% if report.report_file %}
+            <div class="info-group">
+                <label>Прикрепленный файл:</label>
+                <a href="{{ report.report_file.url }}" class="button download" download>Скачать файл</a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if report.status == 'accepted' %}
+                <div class="status-message completed">
+                    <p>Отчет принят. Проект завершен.</p>
+                </div>
+            {% elif report.status == 'rejected' %}
+                <div class="status-message rejected">
+                    <p>Отчет отклонен. Ожидается новый отчет от фрилансера.</p>
+                </div>
+            {% else %}
+                <div class="action-buttons">
+                    <form method="post" class="review-form">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="accept" class="button accept">Принять отчет</button>
+                        <button type="submit" name="action" value="reject" class="button reject">Отклонить отчет</button>
+                    </form>
+                </div>
+            {% endif %}
+
+        <div class="navigation-buttons">
+            <button onclick="history.back()" class="button back">Назад</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .report-container {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .report-title {
+        color: #4CAF50;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .report-info {
+        margin-bottom: 30px;
+    }
+
+    .info-group {
+        margin-bottom: 20px;
+    }
+
+    .info-group label {
+        display: block;
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .info-group p {
+        margin: 0;
+        color: #333;
+        line-height: 1.4;
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 4px;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 30px 0;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .button {
+        display: inline-block;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        color: white;
+    }
+
+    .button.accept {
+        background-color: #4CAF50;
+    }
+
+    .button.accept:hover {
+        background-color: #45a049;
+    }
+
+    .button.reject {
+        background-color: #f44336;
+    }
+
+    .button.reject:hover {
+        background-color: #da190b;
+    }
+
+    .button.back {
+        background-color: #666;
+    }
+
+    .button.back:hover {
+        background-color: #555;
+    }
+
+    .button.download {
+        background-color: #2196F3;
+    }
+
+    .button.download:hover {
+        background-color: #1976D2;
+    }
+
+    @media (max-width: 600px) {
+        .container {
+            padding: 10px;
+        }
+
+        .report-container {
+            padding: 20px;
+        }
+
+        .action-buttons,
+        .navigation-buttons {
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button {
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+.status-message {
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .status-message.completed {
+        background-color: #e8f5e9;
+        color: #4CAF50;
+    }
+
+    .status-message.rejected {
+        background-color: #ffebee;
+        color: #f44336;
+    }
+</style>
+{% endblock %}

@@ -24,6 +24,11 @@ EMAIL_PORT = 587    # Порт для ОТПРАВКИ сообщений
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dees-mr@yandex.ru'  # email
 EMAIL_HOST_PASSWORD = 'vtuqlnvrnkxxjayl'  # пароль - создается индивидуально для каждого приложения
+ADMIN_EMAIL = 'dees-mr@yandex.ru'  # email для получения сообщений с формы
+
+# Настройки медиа-файлов
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Языковые настройки
 LANGUAGE_CODE = 'ru'

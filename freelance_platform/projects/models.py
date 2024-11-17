@@ -40,6 +40,7 @@ class Application(models.Model):
         ('pending', 'На рассмотрении'),
         ('accepted', 'Принята'),
         ('rejected', 'Отклонена'),
+        ('rejected_final', 'Назначен другой исполнитель'),
         ('submitted', 'Отчет отправлен'),
         ('report_rejected', 'Отчет отклонен'),
         ('report_accepted', 'Отчет принят'),
@@ -60,7 +61,8 @@ class Application(models.Model):
 class Report(models.Model):
     freelancer = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    report_file = models.FileField(upload_to='reports/')
+    report_text = models.TextField(verbose_name='Текстовый отчет')
+    report_file = models.FileField(upload_to='reports/%Y/%m/%d/', null=True, blank=True, verbose_name='Файл отчета')
     submission_date = models.DateTimeField(auto_now_add=True)
 
     # Статусы отчета

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}О платформе{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="content-card">
+        <h2 class="page-title">О платформе</h2>
+        
+        <div class="section">
+            <h3 class="section-title">Наша миссия</h3>
+            <p>Мы создаем надежную платформу для эффективного взаимодействия между фрилансерами и работодателями, помогая реализовывать проекты любой сложности.</p>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Преимущества платформы</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Безопасность</h4>
+                    <p>Надежная система проверки исполнителей и заказчиков</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Удобство</h4>
+                    <p>Интуитивно понятный интерфейс и простая система взаимодействия</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Поддержка</h4>
+                    <p>Оперативная помощь в решении любых вопросов</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Гарантии</h4>
+                    <p>Контроль качества выполнения проектов</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Как это работает</h3>
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <p>Регистрация на платформе</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <p>Создание проекта или поиск заказов</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <p>Выбор исполнителя или подача заявки</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <p>Выполнение работы и сдача проекта</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .content-card {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .page-title {
+        color: #4CAF50;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .section {
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .feature-card {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-card h4 {
+        color: #4CAF50;
+        margin-bottom: 10px;
+    }
+
+    .steps {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .step {
+        text-align: center;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .step-number {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        background: #4CAF50;
+        color: white;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .steps {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
