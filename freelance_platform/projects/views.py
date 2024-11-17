@@ -242,7 +242,7 @@ def review_report(request, report_id):
             report.status = 'accepted'
             report.save()
             # Обновляем статус заявки на "отчет принят"
-            application.status = 'report_accepted'
+            application.status = 'completed'
             application.save()
             # Завершаем проект
             report.project.status = 'completed'
